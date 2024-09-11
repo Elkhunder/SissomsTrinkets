@@ -44,6 +44,8 @@ function Get-WindowsVersion{
         ## Begin General Parameters 
         # List of computer names
         [Parameter(Mandatory = $true, ParameterSetName = 'ByName', Position = 1)]
+        [Parameter(ParameterSetName = 'ByOutFile')]
+        [Parameter(ParameterSetName = 'ByOutputDialog')]
         [Parameter(Mandatory = $true, ParameterSetName = 'ProxyByNameAndWait')]
         [Parameter(Mandatory = $false, ParameterSetName = 'Proxy')]
         [Parameter(Mandatory = $false, ParameterSetName = 'Wait')]    
@@ -93,9 +95,9 @@ function Get-WindowsVersion{
         [Parameter(Mandatory = $false, ParameterSetName = 'Wait')]          
         [switch]$UseOutputDialog,
 
-        [Parameter(Mandatory = $true, ParameterSetName = 'ByOutFile')]
-        [Parameter(Mandatory = $false, ParameterSetName = 'Proxy')]
-        [Parameter(Mandatory = $false, ParameterSetName = 'Wait')]       
+        [Parameter(ParameterSetName = 'ByOutFile')]
+        [Parameter(ParameterSetName = 'Proxy')]
+        [Parameter(ParameterSetName = 'Wait')] 
         [string]$OutFile,
 
         # Begin Wait Parameters
@@ -128,8 +130,10 @@ function Get-WindowsVersion{
 
         [Parameter(Mandatory = $false, ParameterSetName = 'Proxy')]  
         [Parameter(Mandatory = $false, ParameterSetName = 'ProxyByNameAndWait')] 
-        [Int]$Port = 22
+        [Int]$Port = 22,
         # End Proxy Parameters
+
+        [switch]$Append
     )
 
     begin{
@@ -202,6 +206,7 @@ function Get-WindowsVersion{
             Write-Verbose "Output will be exported to: $OutFile"
         }
         if($UseInputDialog -and $IsWindows){
+            Write-Verbose "Prompting for file"
             Add-Type -AssemblyName System.Windows.Forms
             $Form = New-Object 'System.Windows.Forms.Form' -Property @{TopMost=$true}
             $File = New-Object System.Windows.Forms.OpenFileDialog
@@ -277,35 +282,148 @@ function Get-WindowsVersion{
     }
 
     process{
-        if ($Local){
-            Write-Verbose "Initiating local query"
-            Invoke-LocalCimQuery -WinVersionMap $WinVersionMap -MacVersionMap $MacVersionMap
-            return
-        }
-        foreach ($Computer in $ComputerName.Split(",").Trim()){
-            if ($AsJob){
-                # Pass connection properties to create pssession inside job, the full pssession object doesn't get passed properly
-                $jobs += Start-Job -Name "GetVersion_${Computer}" -ArgumentList $Computer, $Credential, $ProxyHost, $Port, $UserName, $KeyFilePath, $WinVersionMap, $OutFile, $Wait, $TimeoutMinutes, $IntervalSeconds -ScriptBlock {
-                    param (
-                        [string]$Computer,
-                        [pscredential]$Credential,
-                        [string]$ProxyHost,
-                        [int]$Port,
-                        [string]$UserName,
-                        [string]$KeyFilePath,
-                        [hashtable]$WinVersionMap,
-                        [string]$OutFile,
-                        [bool]$Wait,
-                        [int]$TimeoutMinutes,
-                        [int]$IntervalSeconds
-                    )
-                    $message = "Getting windows version for:"
-                    $message = $message + " " + $Computer
-                    Write-Output $message
+        if ($Local -and $IsMacOS){
+            Write-Verbose "Initiating local system profiler query"
+            $OperatingSystem = Invoke-LocalSPQuery -DataType SPSoftwareDataType -Json
 
+            [version]$OperatingSystemVersion = $OperatingSystem.os_version.Split(' ')[1]
+
+            $DeviceInfo = [PSCustomObject]@{
+                'Computer' = $(scutil --get LocalHostName)
+                'OS Name' = $MacVersionMap[$OperatingSystemVersion.Major]
+                'OS Version' = $OperatingSystemVersion
+            }
+
+            $DeviceInfoList += $DeviceInfo
+
+        }elseif ($Local){
+            Write-Verbose "Initiating local cim query"
+            ($Win32_OperatingSystem, $Win32_ComputerSystem) = Invoke-LocalCimQuery -ClassName 'Win32_OperatingSystem', 'Win32_ComputerSystem'
+            $RemoteUser = ((quser)[1].Split(" ", 2)[0]).Split('>',2)[1]
+            $DeviceInfo = [PSCustomObject]@{
+                'Computer' = $Win32_ComputerSystem.Name
+                'Current User' = $Win32_ComputerSystem.UserName ?? $RemoteUser ?? 'None'
+                'OS Name' = $Win32_OperatingSystem.Caption
+                'OS Version' = $WinVersionMap[$Win32_OperatingSystem.BuildNumber]
+            }
+
+            $DeviceInfoList += $DeviceInfo
+
+        }else{
+            foreach ($Computer in $ComputerName.Split(",").Trim()){
+                if ($AsJob){
+                    # Pass connection properties to create pssession inside job, the full pssession object doesn't get passed properly
+                    $jobs += Start-Job -Name "GetVersion_${Computer}" -ArgumentList $Computer, $Credential, $ProxyHost, $Port, $UserName, $KeyFilePath, $WinVersionMap, $OutFile, $Wait, $TimeoutMinutes, $IntervalSeconds -ScriptBlock {
+                        param (
+                            [string]$Computer,
+                            [pscredential]$Credential,
+                            [string]$ProxyHost,
+                            [int]$Port,
+                            [string]$UserName,
+                            [string]$KeyFilePath,
+                            [hashtable]$WinVersionMap,
+                            [string]$OutFile,
+                            [bool]$Wait,
+                            [int]$TimeoutMinutes,
+                            [int]$IntervalSeconds
+                        )
+                        $message = "Getting windows version for:"
+                        $message = $message + " " + $Computer
+                        Write-Output $message
+    
+                        if ($Wait){
+                            $timeoutTime = [datetime]::Now.AddMinutes($TimeoutMinutes)
+                            $isOnline = $false
+                            while (-not $isOnline -and [datetime]::Now -lt $timeoutTime) {
+                                try {
+                                    $pingResult = Test-Connection -ComputerName $Computer -Count 1 -Quiet
+                                    if ($pingResult) {
+                                        $isOnline = $true
+                                        $message = "[$(Get-Date)] $Computer is now online!"
+            
+                                        Write-Output $message
+                                        Write-Verbose "Verbose: ${Verbose}"
+                                        $currentVerbosePreference = $VerbosePreference
+                                        $verbosePreference = 'SilentlyContinue'
+                                        # if ($env:OS -match "Windows") {
+                                        #     Import-Module BurntToast -ErrorAction SilentlyContinue
+                                        #     New-BurntToastNotification -Text "Device is Online!", $message
+                                        # } else {
+                                        #     Write-Output "Notification: $message"
+                                        # }
+                                        $VerbosePreference = $currentVerbosePreference
+                                    } else {
+                                        if ($Verbose) {
+                                            Write-Verbose "[$(Get-Date)] $Computer is still offline."
+                                        }
+                                        Start-Sleep -Seconds $IntervalSeconds
+                                    }
+                                } catch {
+                                    Write-Warning "An error occurred while checking ${Computer}: $_"
+                                }
+                            }
+            
+                            if (-not $isOnline) {
+                                Write-Output "[$(Get-Date)] Timeout reached. $Computer did not come online within the allotted time."
+                            }
+                        }
+                        if ($ProxyHost){
+                            Write-Output "Using proxy session to ${ProxyHost}"
+                            if($KeyFilePath){
+                                $ProxySession = New-PSSession -HostName $ProxyHost -Port $Port -UserName $UserName -KeyFilePath $KeyFilePath
+                            } else {
+    
+                                $ProxySession = New-PSSession -HostName $ProxyHost -Port $Port -UserName $UserName
+                            }
+                            
+                            ($Win32_OperatingSystem, $Win32_ComputerSystem) = Invoke-Command -Session $ProxySession -ArgumentList $Computer, $Credential -ScriptBlock {
+                                param (
+                                    [String]$Computer,
+                                    [pscredential]$Credential
+                                )
+                                try {
+                                    $CimSession = New-CimSession -Credential $Credential -ComputerName $Computer
+                                    $Win32_OperatingSystem = Get-CimInstance -CimSession $CimSession -ClassName Win32_OperatingSystem
+                                    $Win32_ComputerSystem = Get-CimInstance -CimSession $CimSession -ClassName Win32_ComputerSystem
+                                    return $Win32_OperatingSystem, $Win32_ComputerSystem
+                                }
+                                catch {
+                                    Write-Output $_
+                                }
+                                finally {
+                                    Remove-CimSession -CimSession $CimSession
+                                }
+                            }
+                        } else {
+                            $CimSession = New-CimSession -Credential $Credential -ComputerName $Computer
+                            try {
+                                $Win32_OperatingSystem = Get-CimInstance -CimSession $CimSession -ClassName Win32_OperatingSystem
+                                $Win32_ComputerSystem = Get-CimInstance -CimSession $CimSession -ClassName Win32_ComputerSystem
+                            }
+                            catch {
+                                Write-Error $_
+                            }
+                            finally {
+                                Remove-CimSession -CimSession $CimSession
+                            }
+                        }
+                        $DeviceInfoList += [PSCustomObject]@{
+                            'Timestamp' = $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
+                            'Computer' = $Computer
+                            'Current User' = $Win32_ComputerSystem.Username ?? 'None'
+                            'OS Name' = $Win32_OperatingSystem.Caption
+                            'OS Version' = $WinVersionMap[$Win32_OperatingSystem.BuildNumber]
+                        }
+                        if ($OutFile){
+                            $DeviceInfoList | Out-File -FilePath $OutFile -Append:$Append
+                        }
+                        return $DeviceInfoList
+                    }
+                } else {
                     if ($Wait){
                         $timeoutTime = [datetime]::Now.AddMinutes($TimeoutMinutes)
                         $isOnline = $false
+                        
                         while (-not $isOnline -and [datetime]::Now -lt $timeoutTime) {
                             try {
                                 $pingResult = Test-Connection -ComputerName $Computer -Count 1 -Quiet
@@ -313,7 +431,7 @@ function Get-WindowsVersion{
                                     $isOnline = $true
                                     $message = "[$(Get-Date)] $Computer is now online!"
         
-                                    Write-Output $message
+                                    Write-Host $message
                                     Write-Verbose "Verbose: ${Verbose}"
                                     $currentVerbosePreference = $VerbosePreference
                                     $verbosePreference = 'SilentlyContinue'
@@ -338,16 +456,11 @@ function Get-WindowsVersion{
                         if (-not $isOnline) {
                             Write-Output "[$(Get-Date)] Timeout reached. $Computer did not come online within the allotted time."
                         }
+                        Write-Verbose "Exiting waiting loop"
                     }
-                    if ($ProxyHost){
-                        Write-Output "Using proxy session to ${ProxyHost}"
-                        if($KeyFilePath){
-                            $ProxySession = New-PSSession -HostName $ProxyHost -Port $Port -UserName $UserName -KeyFilePath $KeyFilePath
-                        } else {
-
-                            $ProxySession = New-PSSession -HostName $ProxyHost -Port $Port -UserName $UserName
-                        }
-                        
+    
+                    if ($null -ne $ProxySession){
+                        Write-Verbose "Using a proxy session to ${ProxyHost}"
                         ($Win32_OperatingSystem, $Win32_ComputerSystem) = Invoke-Command -Session $ProxySession -ArgumentList $Computer, $Credential -ScriptBlock {
                             param (
                                 [String]$Computer,
@@ -367,8 +480,10 @@ function Get-WindowsVersion{
                             }
                         }
                     } else {
+                        Write-Verbose "Not using a proxy"
                         $CimSession = New-CimSession -Credential $Credential -ComputerName $Computer
                         try {
+                            Write-Host "Getting computer info"
                             $Win32_OperatingSystem = Get-CimInstance -CimSession $CimSession -ClassName Win32_OperatingSystem
                             $Win32_ComputerSystem = Get-CimInstance -CimSession $CimSession -ClassName Win32_ComputerSystem
                         }
@@ -379,105 +494,22 @@ function Get-WindowsVersion{
                             Remove-CimSession -CimSession $CimSession
                         }
                     }
-                    $DeviceInfoList += [PSCustomObject]@{
+                    $DeviceInfo = [PSCustomObject]@{
                         'Timestamp' = $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
-                        'Computer' = $Computer
+                        'Computer' = $Computer ?? 'None'
                         'Current User' = $Win32_ComputerSystem.Username ?? 'None'
-                        'OS Name' = $Win32_OperatingSystem.Caption
-                        'OS Version' = $WinVersionMap[$Win32_OperatingSystem.BuildNumber]
+                        'OS Name' = $Win32_OperatingSystem.Caption ?? 'None'
+                        'OS Version' = $WinVersionMap[$Win32_OperatingSystem.BuildNumber] ?? 'None'
                     }
-                    if ($OutFile){
-                        $DeviceInfoList | Out-File -FilePath $OutFile
-                    }
-                    return $DeviceInfoList
+                    $DeviceInfoList += $DeviceInfo
                 }
-            } else {
-                if ($Wait){
-                    $timeoutTime = [datetime]::Now.AddMinutes($TimeoutMinutes)
-                    $isOnline = $false
-                    
-                    while (-not $isOnline -and [datetime]::Now -lt $timeoutTime) {
-                        try {
-                            $pingResult = Test-Connection -ComputerName $Computer -Count 1 -Quiet
-                            if ($pingResult) {
-                                $isOnline = $true
-                                $message = "[$(Get-Date)] $Computer is now online!"
-    
-                                Write-Host $message
-                                Write-Verbose "Verbose: ${Verbose}"
-                                $currentVerbosePreference = $VerbosePreference
-                                $verbosePreference = 'SilentlyContinue'
-                                # if ($env:OS -match "Windows") {
-                                #     Import-Module BurntToast -ErrorAction SilentlyContinue
-                                #     New-BurntToastNotification -Text "Device is Online!", $message
-                                # } else {
-                                #     Write-Output "Notification: $message"
-                                # }
-                                $VerbosePreference = $currentVerbosePreference
-                            } else {
-                                if ($Verbose) {
-                                    Write-Verbose "[$(Get-Date)] $Computer is still offline."
-                                }
-                                Start-Sleep -Seconds $IntervalSeconds
-                            }
-                        } catch {
-                            Write-Warning "An error occurred while checking ${Computer}: $_"
-                        }
-                    }
-    
-                    if (-not $isOnline) {
-                        Write-Output "[$(Get-Date)] Timeout reached. $Computer did not come online within the allotted time."
-                    }
-                    Write-Verbose "Exiting waiting loop"
-                }
-
-                if ($null -ne $ProxySession){
-                    Write-Verbose "Using a proxy session to ${ProxyHost}"
-                    ($Win32_OperatingSystem, $Win32_ComputerSystem) = Invoke-Command -Session $ProxySession -ArgumentList $Computer, $Credential -ScriptBlock {
-                        param (
-                            [String]$Computer,
-                            [pscredential]$Credential
-                        )
-                        try {
-                            $CimSession = New-CimSession -Credential $Credential -ComputerName $Computer
-                            $Win32_OperatingSystem = Get-CimInstance -CimSession $CimSession -ClassName Win32_OperatingSystem
-                            $Win32_ComputerSystem = Get-CimInstance -CimSession $CimSession -ClassName Win32_ComputerSystem
-                            return $Win32_OperatingSystem, $Win32_ComputerSystem
-                        }
-                        catch {
-                            Write-Output $_
-                        }
-                        finally {
-                            Remove-CimSession -CimSession $CimSession
-                        }
-                    }
-                } else {
-                    Write-Verbose "Not using a proxy"
-                    $CimSession = New-CimSession -Credential $Credential -ComputerName $Computer
-                    try {
-                        Write-Host "Getting computer info"
-                        $Win32_OperatingSystem = Get-CimInstance -CimSession $CimSession -ClassName Win32_OperatingSystem
-                        $Win32_ComputerSystem = Get-CimInstance -CimSession $CimSession -ClassName Win32_ComputerSystem
-                    }
-                    catch {
-                        Write-Error $_
-                    }
-                    finally {
-                        Remove-CimSession -CimSession $CimSession
-                    }
-                }
-                $DeviceInfo = [PSCustomObject]@{
-                    'Timestamp' = $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
-                    'Computer' = $Computer ?? 'None'
-                    'Current User' = $Win32_ComputerSystem.Username ?? 'None'
-                    'OS Name' = $Win32_OperatingSystem.Caption ?? 'None'
-                    'OS Version' = $WinVersionMap[$Win32_OperatingSystem.BuildNumber] ?? 'None'
-                }
-                $DeviceInfoList += $DeviceInfo
             }
         }
         if ($OutFile){
-            $DeviceInfoList | Out-File -FilePath $OutFile
+            Write-Output "Calling out-file"
+            Write-Host "Calling out-file"
+            $DeviceInfoList | Out-File -FilePath $OutFile -Append:$Append
+            # Out-File -FilePath $OutFile -Append -Verbose -InputObject $DeviceInfoList
         }
         if ($ProxySession){
             Remove-PSSession -Session $ProxySession

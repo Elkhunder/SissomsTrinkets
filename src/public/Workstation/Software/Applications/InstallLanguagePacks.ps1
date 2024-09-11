@@ -1,9 +1,9 @@
 function Install-LanguagePacks {
     param (
-      [Parameter(Mandatory = $true)]
+      [Parameter(Mandatory)]
       [string]
       $ComputerName,
-      [Parameter(Mandatory = $false)]
+      [Parameter(Mandatory)]
       [pscredential]
       $Credential,
   
@@ -191,9 +191,6 @@ function Install-LanguagePacks {
       'Uzbek (Latin, Uzbekistan)'            = 'uz-Latn-UZ'
       'Valencian (Spain)'                    = 'ca-ES-valencia'
       'Welsh (Great Britain)'                = 'cy-GB'
-    }
-    if ($null -eq $Credential){
-      $Credential = $(Get-Credential -UserName "umhs\umhs-$([System.Environment]::UserName)")
     }
     Write-Host "Getting list of $Language Language Packs..."
     $LanguageTag = $LanguageTagLookup[$Language]

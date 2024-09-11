@@ -1,0 +1,14 @@
+
+Timestamp    : 2024-09-03 14:34:31
+Computer     : Localhost
+Current User : None
+OS Name      : Microsoft Windows 11 Enterprise
+OS Version   : 22H2
+
+
+Timestamp    : 2024-09-03 14:34:40
+Computer     : Localhost
+Current User : None
+OS Name      : Microsoft Windows 11 Enterprise
+OS Version   : 22H2
+

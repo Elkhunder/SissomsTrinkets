@@ -1,11 +1,24 @@
 function Add-ApplicationShortcut{
-    $ScriptPath = $MyInvocation.MyCommand.Path
-    Set-Location -Path (Split-Path $ScriptPath)
-    $FunctionPath = "..\..\CustomFunctions\CustomFunctions.ps1"
-    #Import custom functions
-    Import-Module $FunctionPath
-    #Prompt for scope
-    $Scope = New-ListBox -TitleText "Scope" -LabelText "Where would you like to run the script" -ListBoxItems Local,Remote
+  [CmdletBinding()]
+
+  param (
+    # Named ParameterSet
+    [Parameter(Mandatory, ParameterSetName = 'NamedParameterSet')]
+    [string[]]
+    $ComputerName,
+
+    # File ParameterSet
+    [Parameter(Mandatory, ParameterSetName = 'FileParameterSet')]
+    [string]
+    $InputObject,
+
+    # Common ParameterSet
+    [Parameter(Mandatory, ParameterSetName = 'NamedParameterSet')]
+    [Parameter(Mandatory, ParameterSetName = 'FileParameterSet')]
+    [pscredential]
+    $Credential
+
+  )
     #Prompt for computers
     if($Scope -eq "Local"){
       $Computers = "localhost"
@@ -31,7 +44,9 @@ function Add-ApplicationShortcut{
         $SoftwareList = @()
         $InstalledSoftware = Get-ChildItem "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall"
         foreach($obj in $InstalledSoftware){
-          $SoftwareList += $obj.GetValue('DisplayName')
+          $applicationName = $obj.GetValue('DisplayName')
+          if([string]::IsNullOrEmpty($applicationName)){continue}
+          $SoftwareList += $applicationName
         }
         Return $SoftwareList = $SoftwareList | Where-Object {$_ }
       }
