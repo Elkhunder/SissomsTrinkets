@@ -106,7 +106,8 @@
 
 
 
-[CmdletBinding()]
+function Get-Driver {
+  [CmdletBinding()]
 
 param (
 
@@ -398,5 +399,6 @@ foreach ($Computer in $ComputerName) {
 
     }
 
+}
 }
 

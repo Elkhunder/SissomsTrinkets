@@ -298,7 +298,7 @@ function Get-WindowsVersion{
 
         }elseif ($Local){
             Write-Verbose "Initiating local cim query"
-            ($Win32_OperatingSystem, $Win32_ComputerSystem) = Invoke-LocalCimQuery -ClassName 'Win32_OperatingSystem', 'Win32_ComputerSystem'
+            ($Win32_OperatingSystem, $Win32_ComputerSystem) = Invoke-LocalCimQuery -Local -ClassName 'Win32_OperatingSystem', 'Win32_ComputerSystem'
             $RemoteUser = ((quser)[1].Split(" ", 2)[0]).Split('>',2)[1]
             $DeviceInfo = [PSCustomObject]@{
                 'Computer' = $Win32_ComputerSystem.Name
