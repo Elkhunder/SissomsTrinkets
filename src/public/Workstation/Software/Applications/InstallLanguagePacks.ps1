@@ -3,11 +3,13 @@ function Install-LanguagePacks {
       [Parameter(Mandatory)]
       [string]
       $ComputerName,
-      [Parameter(Mandatory)]
+      [Parameter()]
       [pscredential]
-      $Credential,
-  
-      [Parameter(Mandatory = $true)]
+      $SecondaryCredential = $(Get-Credential -UserName "umhs\umhs-$([System.Environment]::UserName)" -Message "Enter secondary credentials"),
+      [Parameter()]
+      [pscredential]
+      $PrimaryCredential = $(Get-Credential -UserName "umhs\$([System.Environment]::UserName)" -Message "Enter credentials for \\corefs.med.umich.edu\Shared2"),
+      [Parameter(Mandatory)]
       [ValidateSet(
           'Arabic (Saudi Arabia)',
           'Basque (Basque)',
@@ -195,22 +197,27 @@ function Install-LanguagePacks {
     Write-Host "Getting list of $Language Language Packs..."
     $LanguageTag = $LanguageTagLookup[$Language]
     try {
-      $LanguagePacks = Invoke-Command -ArgumentList $LanguageTag -ComputerName $ComputerName -Credential $Credential -ScriptBlock {
+      $session = New-PSSession -ComputerName $ComputerName -Credential $SecondaryCredential
+      $LanguagePacks = Invoke-Command -ArgumentList $LanguageTag -Session $session -ScriptBlock {
         param ($LanguageTag)
           (Get-WindowsCapability -Online |
           Where-Object {
             $_.Name -match "^Language\..*~~~$languageTag~"
           })
       }
+      
+      # Create psdrive
+      Invoke-Command -ArgumentList $primaryCredential -Session $session -ScriptBlock {
+        param([pscredential]$credential)
+        New-PSDrive -Name "T" -PSProvider FileSystem -Credential $credential -Root "\\corefs.med.umich.edu\Shared2" -Scope Global -Persist
+      } 
       $LanguagePacksList = $LanguagePacks | Select-Object -ExpandProperty Name
       Foreach ($LanguagePack in $LanguagePacksList){
         Write-Host "Installing $LanguagePack..."
         try {
-          #Copy necessary files to computers temp directory, will be needed if device is not localhost
-          $CabFiles = "$PSScriptRoot/LanguagesAndOptionalFeatures"
-          Invoke-Command -ArgumentList $CabFiles, $LanguagePack -ComputerName $ComputerName -Credential $Credential -ScriptBlock {
-            param ($LanguagePack, $CabFiles)
-            Add-WindowsCapability -Online -LimitAccess -Name $LanguagePack -Source $CabFiles
+          Invoke-Command -ArgumentList $LanguagePack -Session $session -ScriptBlock {
+            param ($LanguagePack)
+            Add-WindowsCapability -Online -LimitAccess -Name $LanguagePack -Source "T:\MCIT_Shared\Teams\DES_ALL\Utilities\LanguagesAndOptionalFeatures"
           }
           Write-Host "Installing $LanguagePack... complete"
         }
@@ -221,7 +228,7 @@ function Install-LanguagePacks {
           
       }
   
-      $InstalledLanguagePacks = Invoke-Command -ArgumentList $LanguageTag -ComputerName $ComputerName -Credential $Credential -Scriptblock {
+      $InstalledLanguagePacks = Invoke-Command -ArgumentList $LanguageTag -Session $session -Scriptblock {
         param ($LanguageTag)
         Get-WindowsCapability -Online |
         Where-Object {
@@ -257,7 +264,7 @@ function Install-LanguagePacks {
   
       Write-Host "Getting current users language preferences..."
       # Get current user language list
-      Invoke-Command -ComputerName $ComputerName -Credential $Credential -Scriptblock {
+      Invoke-Command -ComputerName $ComputerName -Credential $SecondaryCredential -Scriptblock {
         $UserLanguageList = Get-WinUserLanguageList
         Write-Host "Adding $Language to current users language preferences..."
         Write-Host "Setting current users language preferences..."
