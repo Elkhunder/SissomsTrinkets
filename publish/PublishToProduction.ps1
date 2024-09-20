@@ -1,10 +1,17 @@
 function Publish-ToProduction {
     [CmdletBinding()]
     param (
-        
+        [Parameter(Mandatory)]
+        [ValidateSet(
+            "Major",
+            "Minor",
+            "Patch"
+        )]
+        [string] $VersionLabelToIncrement
     )
     
     begin {
+        $VerbosePreference = 'Continue'
         # Check for production repository
         $productionRepositoryPath = "\\corefs.med.umich.edu\Shared2\MCIT_Shared\Teams\DES_ALL\PowerShell\PSRepository"
         $productionRepository = Get-PSRepository -Name MMProd
@@ -25,6 +32,8 @@ function Publish-ToProduction {
     }
     
     process {
+        Update-MTModuleVersion -Label $VersionLabelToIncrement -Verbose
+        Invoke-MTBuild -Verbose
         Publish-Module -Name "C:\Users\jsissom\Development\PowerShell\SissomsTrinkets\dist\SissomsTrinkets\SissomsTrinkets.psd1" -Repository MMProd -Verbose
     }
     
