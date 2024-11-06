@@ -1,10 +1,11 @@
 {
   "ProjectName": "SissomsTrinkets",
   "Description": "Collection of scripts and tools",
-  "Version": "1.0.3",
+  "Version": "1.0.6",
   "Manifest": {
     "Author": "Jonathon Sissom",
-    "PowerShellHostVersion": "5.1",
+    "PowerShellVersion": "7.0",
+    "PowerShellHostVersion": "",
     "GUID": "ef11a31a-75eb-474d-a4a1-b6d25ebf2590",
     "Tags": [],
     "ProjecUri": ""

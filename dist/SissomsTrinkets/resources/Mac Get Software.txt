@@ -1,1 +1,0 @@
-use Invoke-LocalSPQuery with the data type SPApplicationsDataType and the Json switch
