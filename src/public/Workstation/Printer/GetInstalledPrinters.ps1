@@ -1,15 +1,39 @@
-# <#
+function Get-InstalledPrinter {
+    [CmdletBinding()]
+    param (
+        [Parameter()]
+        [string[]]
+        $ComputerName,
 
-# ************************** Change Log ******************************
-# ************************** Version 1 *******************************
+        [Parameter()]
+        [CimSession]
+        $CimSession,
 
-# ** Initial Commit **
+        [Parameter()]
+        [switch]
+        $InputFile,
 
-# ************************ Feature Requests **************************
-
-# Future - Add ability to choose if you want to export results to a file instead of have it written to console
-
-# #>
+        [Parameter()]
+        [switch]
+        $OutputFile,
+        
+        [Parameter()]
+        [switch]
+        $Append
+    )
+    
+    begin {
+        
+    }
+    
+    process {
+        
+    }
+    
+    end {
+        
+    }
+}
 
 
 # $userFile = Read-Host -Prompt 'Do you want to use a file for importing computer names? (Y/N)'

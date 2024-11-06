@@ -24,7 +24,6 @@ function Publish-ToProduction {
             Write-Verbose "Production repository is not set"
             Write-Verbose "Setting production repository:$([Environment]::NewLine) $($productionRepositoryInfo | Out-String)"
             $productionRepositoryInfo | Format-Table | Out-String | Write-Verbose
-            
             Register-PSRepository -Name MMProd -PublishLocation $productionRepositoryPath -SourceLocation $productionRepositoryPath -InstallationPolicy Trusted -Verbose
         } else {
             Write-Verbose "Production repository exists, continuing to deployment"

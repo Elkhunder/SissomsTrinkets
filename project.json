@@ -1,7 +1,7 @@
 {
   "ProjectName": "SissomsTrinkets",
   "Description": "Collection of scripts and tools",
-  "Version": "1.0.2",
+  "Version": "1.0.3",
   "Manifest": {
     "Author": "Jonathon Sissom",
     "PowerShellHostVersion": "5.1",

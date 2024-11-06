@@ -872,18 +872,42 @@ function Watch-DeviceStatus {
         }
     }
 }
-# <#
+function Get-InstalledPrinter {
+    [CmdletBinding()]
+    param (
+        [Parameter()]
+        [string[]]
+        $ComputerName,
 
-# ************************** Change Log ******************************
-# ************************** Version 1 *******************************
+        [Parameter()]
+        [CimSession]
+        $CimSession,
 
-# ** Initial Commit **
+        [Parameter()]
+        [switch]
+        $InputFile,
 
-# ************************ Feature Requests **************************
-
-# Future - Add ability to choose if you want to export results to a file instead of have it written to console
-
-# #>
+        [Parameter()]
+        [switch]
+        $OutputFile,
+        
+        [Parameter()]
+        [switch]
+        $Append
+    )
+    
+    begin {
+        
+    }
+    
+    process {
+        
+    }
+    
+    end {
+        
+    }
+}
 
 
 # $userFile = Read-Host -Prompt 'Do you want to use a file for importing computer names? (Y/N)'
@@ -1217,7 +1241,7 @@ function Add-ApplicationShortcut{
     $InstalledSoftware = Get-ChildItem "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall"
     foreach($obj in $InstalledSoftware){write-host $obj.GetValue('DisplayName')}
   }
-function Install-LanguagePacks {
+function Install-LanguagePack {
     param (
       [Parameter(Mandatory)]
       [string]
@@ -2522,16 +2546,6 @@ function Get-WindowsVersion{
 
 # }
 # Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
-# Function to check if the user is a built-in Windows account
-function IsBuiltInAccount {
-    param ($accountName)
-
-    # Define built-in Windows accounts to filter out
-    $builtInAccounts = @('SYSTEM', 'LOCAL SERVICE', 'NETWORK SERVICE')
-
-    # Check if the account matches a built-in account or pattern like DWM-*, UMFD-*
-    return ($builtInAccounts -contains $accountName -or $accountName -match '^DWM-' -or $accountName -match '^UMFD-')
-}
 
 # https://blog.ironmansoftware.com/tui-powershell/#:~:text=Terminal.Gui%20is%20a%20.NET%20library%20for%20creating%20robust%20TUIs.%20It%E2%80%99s#:~:text=Terminal.Gui%20is%20a%20.NET%20library%20for%20creating%20robust%20TUIs.%20It%E2%80%99s
 
@@ -3055,6 +3069,16 @@ function New-ListBox{
   
     return $listBox.SelectedItem
   }
+# Function to check if the user is a built-in Windows account
+function IsBuiltInAccount {
+    param ($accountName)
+
+    # Define built-in Windows accounts to filter out
+    $builtInAccounts = @('SYSTEM', 'LOCAL SERVICE', 'NETWORK SERVICE')
+
+    # Check if the account matches a built-in account or pattern like DWM-*, UMFD-*
+    return ($builtInAccounts -contains $accountName -or $accountName -match '^DWM-' -or $accountName -match '^UMFD-')
+}
 function New-EncryptionKey{
     <#
       .SYNOPSIS

@@ -1,0 +1,128 @@
+[9/27/2024 4:46:54 PM] Retrieving installed software from registry paths.
+[9/27/2024 4:46:54 PM] Registry paths: HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall
+[9/27/2024 4:46:54 PM] Total software found: 95
+[9/27/2024 4:47:00 PM] User selected: Google Chrome
+[9/27/2024 4:47:00 PM] Found selected software in registry: Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Uninstall\{7CDD3ACD-58F3-37C4-A790-55AAE5E9845B}
+[9/27/2024 4:47:00 PM] Searching for application directory in: C:\Program Files C:\Program Files (x86)
+[9/27/2024 4:47:00 PM] Initial search for 'Google Chrome' failed.
+[9/27/2024 4:47:02 PM] Recursive search for 'Google Chrome' failed. Trying first word in the name.
+[9/27/2024 4:47:02 PM] Found application directory: C:\Program Files\Google C:\Program Files (x86)\Google
+[9/27/2024 4:47:02 PM] Parent directory: C:\Program Files\Google C:\Program Files (x86)
+[9/27/2024 4:47:02 PM] Parent directory is not in program files. Searching for .exe files in parent directory.
+[9/27/2024 4:50:47 PM] Retrieving installed software from registry paths.
+[9/27/2024 4:50:47 PM] Registry paths: HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall
+[9/27/2024 4:50:47 PM] Total software found: 95
+[9/27/2024 4:50:51 PM] User selected: Google Chrome
+[9/27/2024 4:50:51 PM] Found selected software in registry: Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Uninstall\{7CDD3ACD-58F3-37C4-A790-55AAE5E9845B}
+[9/27/2024 4:50:51 PM] Searching for application directory in: C:\Program Files C:\Program Files (x86)
+[9/27/2024 4:50:51 PM] Initial search for 'Google Chrome' failed.
+[9/27/2024 4:50:53 PM] Recursive search for 'Google Chrome' failed. Trying first word in the name.
+[9/27/2024 4:50:53 PM] Found application directory: C:\Program Files\Google C:\Program Files (x86)\Google
+[9/27/2024 4:50:53 PM] Parent directory: C:\Program Files\Google C:\Program Files (x86)
+[9/27/2024 4:50:53 PM] Parent directory is not in program files. Searching for .exe files in parent directory.
+[9/27/2024 4:50:53 PM] No executables found in parent directory: C:\Program Files\Google C:\Program Files (x86). Possible reasons: empty directory, incorrect permissions, or non-existent files.
+[9/27/2024 4:57:12 PM] Retrieving installed software from registry paths.
+[9/27/2024 4:57:12 PM] Registry paths: HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall
+[9/27/2024 4:57:12 PM] Total software found: 95
+[9/27/2024 4:57:19 PM] User selected: Google Chrome
+[9/27/2024 4:57:19 PM] Found selected software in registry: Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Uninstall\{7CDD3ACD-58F3-37C4-A790-55AAE5E9845B}
+[9/27/2024 4:57:19 PM] Searching in Program Files first: C:\Program Files
+[9/27/2024 4:57:19 PM] Initial search in Program Files for 'Google Chrome' failed. Trying recursive search.
+[9/27/2024 4:57:19 PM] Error: Application directory for 'Google Chrome' not found in Program Files. Trying Program Files (x86).
+[9/27/2024 4:57:19 PM] Initial search in Program Files (x86) for 'Google Chrome' failed. Trying recursive search.
+[9/27/2024 4:57:20 PM] Error: Application directory for 'Google Chrome' not found in Program Files (x86).
+[9/27/2024 5:02:34 PM] Retrieving installed software from registry paths.
+[9/27/2024 5:02:34 PM] Registry paths: HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall
+[9/27/2024 5:02:34 PM] Total software found: 95
+[9/27/2024 5:02:40 PM] User selected: Google Chrome
+[9/27/2024 5:02:40 PM] Found selected software in registry: Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Uninstall\{7CDD3ACD-58F3-37C4-A790-55AAE5E9845B}
+[9/27/2024 5:02:40 PM] Searching in Program Files first: C:\Program Files
+[9/27/2024 5:02:40 PM] Initial search in Program Files for 'Google Chrome' failed. Trying recursive search.
+[9/27/2024 5:02:40 PM] Falling back to Program Files (x86).
+[9/27/2024 5:02:40 PM] Initial search in Program Files (x86) for 'Google Chrome' failed. Trying recursive search.
+[9/27/2024 5:02:41 PM] Error: Application directory for 'Google Chrome' not found in Program Files (x86).
+[9/27/2024 5:08:04 PM] Retrieving installed software from registry paths.
+[9/27/2024 5:08:04 PM] Registry paths: HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall
+[9/27/2024 5:08:04 PM] Total software found: 95
+[9/27/2024 5:08:09 PM] User selected: Google Chrome
+[9/27/2024 5:08:09 PM] Found selected software in registry: Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Uninstall\{7CDD3ACD-58F3-37C4-A790-55AAE5E9845B}
+[9/27/2024 5:08:09 PM] Searching in Program Files first: C:\Program Files
+[9/27/2024 5:08:09 PM] Initial search in Program Files for 'Google Chrome' failed. Trying recursive search.
+[9/27/2024 5:08:10 PM] No directory found with the full DisplayName in Program Files. Attempting word-based search.
+[9/27/2024 5:08:10 PM] Attempting search with word 'Google' in directory: C:\Program Files
+[9/27/2024 5:08:10 PM] Found directory for word 'Google': C:\Program Files\Google
+[9/27/2024 5:08:10 PM] Executable found: C:\Program Files\Google\Chrome\Application\chrome_proxy.exe
+[9/27/2024 5:08:10 PM] Executable found: C:\Program Files\Google\Chrome\Application\chrome.exe
+[9/27/2024 5:08:10 PM] Executable found: C:\Program Files\Google\Chrome\Application\128.0.6613.120\chrome_pwa_launcher.exe
+[9/27/2024 5:08:10 PM] Executable found: C:\Program Files\Google\Chrome\Application\128.0.6613.120\elevation_service.exe
+[9/27/2024 5:08:10 PM] Executable found: C:\Program Files\Google\Chrome\Application\128.0.6613.120\notification_helper.exe
+[9/27/2024 5:08:10 PM] Executable found: C:\Program Files\Google\Chrome\Application\128.0.6613.120\os_update_handler.exe
+[9/27/2024 5:08:10 PM] Executable found: C:\Program Files\Google\Chrome\Application\128.0.6613.120\Installer\chrmstp.exe
+[9/27/2024 5:08:10 PM] Executable found: C:\Program Files\Google\Chrome\Application\128.0.6613.120\Installer\setup.exe
+[9/27/2024 5:08:42 PM] Retrieving installed software from registry paths.
+[9/27/2024 5:08:42 PM] Registry paths: HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall
+[9/27/2024 5:08:42 PM] Total software found: 95
+[9/27/2024 5:08:46 PM] User selected: Adobe Creative Cloud
+[9/27/2024 5:08:46 PM] Found selected software in registry: Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Adobe Creative Cloud
+[9/27/2024 5:08:46 PM] Searching in Program Files first: C:\Program Files
+[9/27/2024 5:08:46 PM] Initial search in Program Files for 'Adobe Creative Cloud' failed. Trying recursive search.
+[9/27/2024 5:08:47 PM] Found application directory in Program Files: C:\Program Files\Adobe\Adobe Creative Cloud
+[9/27/2024 5:08:47 PM] Executable found: C:\Program Files\Adobe\Adobe Creative Cloud\ACC\Adobe Crash Processor.exe
+[9/27/2024 5:08:47 PM] Executable found: C:\Program Files\Adobe\Adobe Creative Cloud\ACC\Creative Cloud CustomHook.exe
+[9/27/2024 5:08:47 PM] Executable found: C:\Program Files\Adobe\Adobe Creative Cloud\ACC\Creative Cloud Helper.exe
+[9/27/2024 5:08:47 PM] Executable found: C:\Program Files\Adobe\Adobe Creative Cloud\ACC\Creative Cloud.exe
+[9/27/2024 5:08:47 PM] Executable found: C:\Program Files\Adobe\Adobe Creative Cloud\ACC\CRLogTransport.exe
+[9/27/2024 5:08:47 PM] Executable found: C:\Program Files\Adobe\Adobe Creative Cloud\ACC\CRWindowsClientService.exe
+[9/27/2024 5:08:47 PM] Executable found: C:\Program Files\Adobe\Adobe Creative Cloud\Diagnostics\Adobe Creative Cloud Diagnostics.exe
+[9/27/2024 5:08:53 PM] Retrieving installed software from registry paths.
+[9/27/2024 5:08:53 PM] Registry paths: HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall
+[9/27/2024 5:08:53 PM] Total software found: 95
+[9/27/2024 5:08:57 PM] User selected: Adobe CCDA
+[9/27/2024 5:08:57 PM] Found selected software in registry: Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Uninstall\{F5BCDA2F-2C3F-4FC6-803E-3ABEA541902D}
+[9/27/2024 5:08:57 PM] Searching in Program Files first: C:\Program Files
+[9/27/2024 5:08:57 PM] Initial search in Program Files for 'Adobe CCDA' failed. Trying recursive search.
+[9/27/2024 5:08:58 PM] No directory found with the full DisplayName in Program Files. Attempting word-based search.
+[9/27/2024 5:08:58 PM] Attempting search with word 'Adobe' in directory: C:\Program Files
+[9/27/2024 5:08:58 PM] Found directory for word 'Adobe': C:\Program Files\Adobe
+[9/27/2024 5:08:58 PM] Executable found: C:\Program Files\Adobe\Adobe Creative Cloud\ACC\Adobe Crash Processor.exe
+[9/27/2024 5:08:58 PM] Executable found: C:\Program Files\Adobe\Adobe Creative Cloud\ACC\Creative Cloud CustomHook.exe
+[9/27/2024 5:08:58 PM] Executable found: C:\Program Files\Adobe\Adobe Creative Cloud\ACC\Creative Cloud Helper.exe
+[9/27/2024 5:08:58 PM] Executable found: C:\Program Files\Adobe\Adobe Creative Cloud\ACC\Creative Cloud.exe
+[9/27/2024 5:08:58 PM] Executable found: C:\Program Files\Adobe\Adobe Creative Cloud\ACC\CRLogTransport.exe
+[9/27/2024 5:08:58 PM] Executable found: C:\Program Files\Adobe\Adobe Creative Cloud\ACC\CRWindowsClientService.exe
+[9/27/2024 5:08:58 PM] Executable found: C:\Program Files\Adobe\Adobe Creative Cloud\Diagnostics\Adobe Creative Cloud Diagnostics.exe
+[9/27/2024 5:08:58 PM] Executable found: C:\Program Files\Adobe\Adobe Creative Cloud Experience\CCXProcess.exe
+[9/27/2024 5:08:58 PM] Executable found: C:\Program Files\Adobe\Adobe Creative Cloud Experience\js\node_modules\adobe-cr\build\Release\Adobe Crash Processor.exe
+[9/27/2024 5:08:58 PM] Executable found: C:\Program Files\Adobe\Adobe Creative Cloud Experience\js\node_modules\adobe-cr\build\Release\CRLogTransport.exe
+[9/27/2024 5:08:58 PM] Executable found: C:\Program Files\Adobe\Adobe Creative Cloud Experience\js\node_modules\adobe-cr\build\Release\CRWindowsClientService.exe
+[9/27/2024 5:08:58 PM] Executable found: C:\Program Files\Adobe\Adobe Creative Cloud Experience\libs\node.exe
+[9/27/2024 5:09:20 PM] Retrieving installed software from registry paths.
+[9/27/2024 5:09:20 PM] Registry paths: HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall
+[9/27/2024 5:09:20 PM] Total software found: 95
+[9/27/2024 5:09:23 PM] User selected: Centricity Periop Anesthesia Client 7.63.0.299
+[9/27/2024 5:09:23 PM] Found selected software in registry: Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Centricity Periop Anesthesia Client 7.63.0.299
+[9/27/2024 5:09:23 PM] Searching in Program Files first: C:\Program Files
+[9/27/2024 5:09:23 PM] Initial search in Program Files for 'Centricity Periop Anesthesia Client 7.63.0.299' failed. Trying recursive search.
+[9/27/2024 5:09:24 PM] No directory found with the full DisplayName in Program Files. Attempting word-based search.
+[9/27/2024 5:09:24 PM] Attempting search with word 'Centricity' in directory: C:\Program Files
+[9/27/2024 5:09:25 PM] Attempting search with word 'Periop' in directory: C:\Program Files
+[9/27/2024 5:09:26 PM] Attempting search with word 'Anesthesia' in directory: C:\Program Files
+[9/27/2024 5:09:26 PM] Attempting search with word 'Client' in directory: C:\Program Files
+[9/27/2024 5:09:27 PM] Found directory recursively for word 'Client': C:\Program Files\1E\Client C:\Program Files\Adobe\Adobe Creative Cloud Experience\js\node_modules\socks\build\client C:\Program Files\Adobe\Adobe Creative Cloud Experience\js\node_modules\socks\typings\client C:\Program Files\Microsoft Office\root\Client C:\Program Files\Microsoft Office\Updates\Download\PackageFiles\9CCDADEF-A249-466A-ABB0-71A043D36B6B\root\Client
+[9/27/2024 5:09:27 PM] No executables found in directory: C:\Program Files\1E\Client C:\Program Files\Adobe\Adobe Creative Cloud Experience\js\node_modules\socks\build\client C:\Program Files\Adobe\Adobe Creative Cloud Experience\js\node_modules\socks\typings\client C:\Program Files\Microsoft Office\root\Client C:\Program Files\Microsoft Office\Updates\Download\PackageFiles\9CCDADEF-A249-466A-ABB0-71A043D36B6B\root\Client
+[9/27/2024 5:09:27 PM] Attempting search with word '7.63.0.299' in directory: C:\Program Files
+[9/27/2024 5:09:28 PM] No valid directories or executables found using word-based search.
+[9/27/2024 5:09:28 PM] No executables found in Program Files after word-based search. Falling back to Program Files (x86).
+[9/27/2024 5:09:28 PM] Initial search in Program Files (x86) for 'Centricity Periop Anesthesia Client 7.63.0.299' failed. Trying recursive search.
+[9/27/2024 5:09:29 PM] Error: Application directory for 'Centricity Periop Anesthesia Client 7.63.0.299' not found in Program Files (x86).
+[9/27/2024 5:16:35 PM] Retrieving installed software from registry paths.
+[9/27/2024 5:16:35 PM] Registry paths: HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall, HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall
+[9/27/2024 5:16:35 PM] Total software found: 95
+[9/27/2024 5:16:39 PM] User selected: Centricity Periop Anesthesia Client 7.63.0.299
+[9/27/2024 5:16:39 PM] Found selected software in registry: Microsoft.PowerShell.Core\Registry::HKEY_LOCAL_MACHINE\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Centricity Periop Anesthesia Client 7.63.0.299
+[9/27/2024 5:16:39 PM] Known installation location found for 'Centricity Periop Anesthesia Client 7.63.0.299': C:\Program Files (x86)\GE Healthcare\Centricity Perioperative Anesthesia
+[9/27/2024 5:16:39 PM] Using known installation location: C:\Program Files (x86)\GE Healthcare\Centricity Perioperative Anesthesia
+[9/27/2024 5:16:39 PM] Executable found: C:\Program Files (x86)\GE Healthcare\Centricity Perioperative Anesthesia\AnesStub.exe
+[9/27/2024 5:16:39 PM] Executable found: C:\Program Files (x86)\GE Healthcare\Centricity Perioperative Anesthesia\Anesthesia.exe
+[9/27/2024 5:16:39 PM] Executable found: C:\Program Files (x86)\GE Healthcare\Centricity Perioperative Anesthesia\AnesthesiaAdmin.exe
+[9/27/2024 5:16:39 PM] Executable found: C:\Program Files (x86)\GE Healthcare\Centricity Perioperative Anesthesia\ImagingManager.exe
