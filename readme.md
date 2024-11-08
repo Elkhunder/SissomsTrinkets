@@ -1,6 +1,6 @@
 # SissomsTrinkets
 
-![GitHub Release](https://img.shields.io/github/v/release/Elkhunder/SissomsTrinkets?display_name=release&style=flat&label=Latest%20Release&color=blue&link=https://github.com/Elkhunder/SissomsTrinkets/releases/latest)
+![GitHub Release](https://img.shields.io/github/v/release/Elkhunder/SissomsTrinkets?display_name=release&style=flat&label=Latest%20Release&color=blue&link=https%3A%2F%2Fgithub.com%2FElkhunder%2FSissomsTrinkets%2Freleases%2Flatest)
   ![GitHub Release](https://img.shields.io/github/v/release/Elkhunder/SissomsTrinkets?style=flat&label=Module%20Version&color=blue)   ![GitHub Release Date](https://img.shields.io/github/release-date/Elkhunder/SissomsTrinkets?display_date=published_at&style=flat&label=Last%20Updated&color=blue)
 
 ## Table of Contents
