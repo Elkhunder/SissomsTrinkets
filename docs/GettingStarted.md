@@ -1,23 +1,11 @@
-# SissomsTrinkets PowerShell Module Documentation
+# Getting Started
 
-## Overview
-
-The **SissomsTrinkets** PowerShell module provides a set of functions designed for remotely managing computers. It includes a range of capabilities, such as managing user profiles, working with BIOS passwords, installing modules, and retrieving system information like Windows version and hard drive serial numbers. Whether you're automating administrative tasks or handling remote management scenarios, this module offers a streamlined way to perform a variety of operations from a PowerShell console.
-
-### Key Features
-
-- **Manage User Profiles**: Add and remove user profiles remotely.
-- **BIOS Password Management**: Clear and remove BIOS passwords.
-- **System Information Retrieval**: Gather system and hardware details like Windows version, driver info, and hard drive serial numbers.
-- **Install Modules**: Easily install additional modules as needed.
-- **Printer Management**: Query installed printers.
-
-## Getting Started
-
-### Prerequisites
+## Prerequisites
 
 - **PowerShell version 7** or higher is required to use this module.
 - **Module Repository**: The module is hosted in a private PowerShell repository located at `\\corefs.med.umich.edu\Shared2\MCIT_Shared\Teams\DES_ALL\PowerShell\PSRepository`.
+
+## Installation
 
 ### Registering the PowerShell Repository
 

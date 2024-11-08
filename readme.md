@@ -5,7 +5,7 @@
 ## Table of Contents
 
 - [Overview](readme.md#-overview)
-- [Getting Started](/docs/gettingstarted.md#getting-started)
+- [Getting Started](/docs/GettingStarted.md#getting-started)
 - [Usage](docs/usage.md)
 
 ## 💫 Overview
