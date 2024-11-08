@@ -4,11 +4,9 @@
 
 ## Table of Contents
 
-- [Overview](overview.md#-overview)
-- [Installation](docs/installation.md)
+- [Overview](readme.md#-overview)
+- [Getting Started](docs/gettingstarted.md)
 - [Usage](docs/usage.md)
-- [API Reference](docs/api.md)
-- [Contributing](docs/contributing.md)
 
 ## 💫 Overview
 
@@ -24,11 +22,11 @@ The **SissomsTrinkets** PowerShell module provides a set of functions designed f
 
 - **Printer Management**: Query installed printers.
 
-## 📑 Wiki pages
+<!-- ## 📑 Wiki pages
 
 | Work Area          | Status      | Category      | Owner            | Last Updated |
 |--------------------|-------------|---------------|------------------|--------------|
 | Getting Started    | In Progress | Documentation | Sissom, Jonathon | 11/07/2024   |
-| Functions Overview | In Progress | Documentation | Sissom, Jonathon | 11/07/2024   |
+| Functions Overview | In Progress | Documentation | Sissom, Jonathon | 11/07/2024   | -->
 
 <!-- ## 🔗 Relevant links -->
