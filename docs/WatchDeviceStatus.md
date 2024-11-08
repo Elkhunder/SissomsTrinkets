@@ -2,7 +2,7 @@
 
 _The `Watch-DeviceStatus` function monitors the online status of specified computers and sends a notification when a device comes online. It allows users to specify a list of computer names directly or prompt for a file containing computer names. The function runs in the background, continuously checking each device's status at specified intervals and timing out after a set period._
 
-#### Parameters
+## Parameters
 
 - **ComputerName**
   - **Description**: Specifies a list of computer names to be monitored. This parameter is mandatory unless the `UseInFile` switch is specified. It accepts an array of strings, allowing multiple computer names to be monitored simultaneously.
@@ -58,7 +58,7 @@ _The `Watch-DeviceStatus` function monitors the online status of specified compu
   - **Default Value**: `60`
   - **Mandatory**: `False`
 
-#### Examples
+## Examples
 
 1. **Monitor Specific Computers**
 
@@ -92,7 +92,7 @@ _The `Watch-DeviceStatus` function monitors the online status of specified compu
     Watch-DeviceStatus -UseInFile -IntervalSeconds 20 -TimeoutMinutes 45
     ```
 
-<!-- 5. **Managing Jobs Created by Watch-DeviceStatus**
+5. **Managing Jobs Created by Watch-DeviceStatus**
 
 Since Watch-DeviceStatus runs in the background using jobs, you can manage these jobs with the following cmdlets:
 
@@ -144,9 +144,9 @@ Since Watch-DeviceStatus runs in the background using jobs, you can manage these
     Get-Job -Name 'Monitor_*' | Foreach-Object {
         Receive-Job -Job $_ -Wait -AutoRemove | Write-Output
     }
-    ``` -->
+    ```
 
-#### Notes
+## Notes
 
 - The function runs in the background using jobs, allowing you to monitor multiple devices simultaneously.
 - Notifications are sent using the BurntToast module on Windows systems. On non-Windows systems, the notification message is written to the console.

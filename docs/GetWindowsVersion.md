@@ -2,7 +2,7 @@
 
 _The `Get-WindowsVersion` function gathers information about the Windows operating system and build versions from specified computers. It allows users to provide a list of computer names directly, or through a file. The function handles local and remote computer queries, supports secondary credentials for remote access, and offers options to output results either to a file or the console._
 
-#### Parameters
+## Parameters
 
 - **ComputerName**
   - **Description**: Specifies a list of computer names that the script will operate on. This parameter accepts an array of strings, allowing you to provide multiple computer names to be processed.
@@ -21,7 +21,7 @@ _The `Get-WindowsVersion` function gathers information about the Windows operati
   - **Type**: [`Switch`](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_functions_advanced_parameters?view=powershell-7.4#switch-parameters) - Boolean flag that is either true when specified or false when omitted
   - **Mandatory**: `False`
 
-#### Examples
+## Examples
 
 - Specify Computer Names
 
