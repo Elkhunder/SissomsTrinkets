@@ -137,6 +137,21 @@ function Get-WindowsVersion{
     )
 
     begin{
+        if ($IsMacOS -and (-not $ProxyHost -or -not $UserName -or -not $KeyFilePath)) {
+            $homeDir = $HOME ?? [Environment]::GetFolderPath("UserProfile")
+            $sshDir = Join-Path $homeDir ".ssh"
+            $configPath = Join-Path $sshDir "proxysettings.json"
+        
+            if (Test-Path $configPath) {
+                $proxyConfig = Get-Content $configPath | ConvertFrom-Json
+                $ProxyHost    = $ProxyHost    ?? $proxyConfig.ProxyHost
+                $UserName     = $UserName     ?? $proxyConfig.UserName
+                $KeyFilePath  = $KeyFilePath  ?? $proxyConfig.KeyFilePath
+                $Port         = $Port         ?? $proxyConfig.Port
+                Write-Host "ℹ️ Loaded proxy settings from $configPath"
+            }
+        }
+
         if ($ComputerName -and $FilePath){
             throw "ComputerName can not be used with FilePath"
         }
