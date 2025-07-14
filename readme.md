@@ -6,7 +6,6 @@
 
 - [Overview](readme.md#-overview)
 - [Getting Started](/docs/GettingStarted.md#getting-started)
-- [Usage](docs/usage.md)
 
 ## 💫 Overview
 
@@ -87,12 +86,12 @@ The following functions are included in the **SissomsTrinkets** module:
 - **Get-HardDriverSerialNumbers**
 - **Get-InstalledPrinter**
 - **Get-UserProfile**
-- **Get-WindowsVersion**
+- [**Get-WindowsVersion**](docs/functions/getwindowsversion.md)
 - **Install-Modules**
 - **Remove-BiosPassword**
 - **Remove-UserProfile**
 - **Set-NetworkProfileCategory**
-- **Watch-DeviceStatus**
+- [**Watch-DeviceStatus**](docs/functions/watchdevicestatus.md)
 
 Each function is designed to support remote management scenarios, from managing user profiles to retrieving system details.
 
