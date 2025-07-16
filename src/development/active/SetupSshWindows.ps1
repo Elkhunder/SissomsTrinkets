@@ -52,81 +52,28 @@ function ConfigureSSHService {
 
 function ConfigureFirewall {
     Write-Host "Configuring Windows Firewall for SSH..." -ForegroundColor Cyan
-    
-    $ruleName = "OpenSSH-Server-In-TCP"
-    $firewallRule = Get-NetFirewallRule -DisplayName $ruleName -ErrorAction SilentlyContinue
+    $firewallProps = @{
+        Name        = "OpenSSH-Server-In-TCP"
+        DisplayName = "OpenSSH SSH Server (sshd)"
+        Enabled     = "True"
+        Direction   = "Inbound"
+        Protocol    = "TCP"
+        LocalPort   = 22
+        Action      = "Allow"
+    }
+    $firewallRule = Get-NetFirewallRule -DisplayName $firewallProps.DisplayName -ErrorAction SilentlyContinue
     
     if (-not $firewallRule) {
         try {
-            New-NetFirewallRule -Name $ruleName -DisplayName $ruleName -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22 -ErrorAction Stop
+            New-NetFirewallRule @firewallProps -ErrorAction SilentlyContinue | Out-Null
             Write-Host "Firewall rule created successfully." -ForegroundColor Green
         }
         catch {
             Write-Host "Failed to create firewall rule: $_" -ForegroundColor Red
-            exit 1
         }
     }
     else {
         Write-Host "Firewall rule already exists." -ForegroundColor Green
-    }
-}
-
-function ConfigureSSHKeys {
-    Write-Host "Configuring SSH key authentication..." -ForegroundColor Cyan
-    
-    $sshDir = "$env:ProgramData\ssh"
-    $adminSshDir = "$env:USERPROFILE\.ssh"
-    $authorizedKeysPath = "$env:ProgramData\ssh\administrators_authorized_keys"
-    
-    # Create .ssh directory if it doesn't exist
-    if (-not (Test-Path $adminSshDir)) {
-        New-Item -ItemType Directory -Path $adminSshDir -Force | Out-Null
-    }
-    
-    # Generate SSH key pair if they don't exist
-    if (-not (Test-Path "$adminSshDir\id_rsa")) {
-        Write-Host "Generating new SSH key pair..." -ForegroundColor Yellow
-        try {
-            ssh-keygen -t rsa -b 4096 -f "$adminSshDir\id_rsa" -N '""' -q
-            Write-Host "SSH key pair generated successfully." -ForegroundColor Green
-        }
-        catch {
-            Write-Host "Failed to generate SSH keys: $_" -ForegroundColor Red
-            exit 1
-        }
-    }
-    
-    # Display public key for user to copy to Mac
-    if (Test-Path "$adminSshDir\id_rsa.pub") {
-        $publicKey = Get-Content "$adminSshDir\id_rsa.pub"
-        Write-Host ""
-        Write-Host "=============================================" -ForegroundColor Yellow
-        Write-Host "Your public key (add this to ~/.ssh/authorized_keys on your Mac if you want to connect from Windows to Mac):" -ForegroundColor Yellow
-        Write-Host $publicKey -ForegroundColor White
-        Write-Host "=============================================" -ForegroundColor Yellow
-        Write-Host ""
-    }
-    
-    # Configure authorized_keys for incoming connections
-    if (-not (Test-Path $authorizedKeysPath)) {
-        New-Item -ItemType File -Path $authorizedKeysPath -Force | Out-Null
-    }
-    
-    # Set proper permissions on SSH directories and files
-    try {
-        icacls $sshDir /reset
-        icacls $sshDir /inheritance:r
-        icacls $sshDir /grant "SYSTEM:(OI)(CI)F" /grant "Administrators:(OI)(CI)F"
-        
-        if (Test-Path $authorizedKeysPath) {
-            icacls $authorizedKeysPath /inheritance:r
-            icacls $authorizedKeysPath /grant "SYSTEM:F" /grant "Administrators:F"
-        }
-        
-        Write-Host "SSH directory permissions configured." -ForegroundColor Green
-    }
-    catch {
-        Write-Host "Failed to configure permissions: $_" -ForegroundColor Red
     }
 }
 
@@ -150,19 +97,82 @@ function SetPowerShell7AsDefaultShell {
     
     # Find PowerShell 7 installation path
     $pwshPath = (Get-Command pwsh.exe -ErrorAction SilentlyContinue).Source
+
+    # Check powershell version for update
+    # Variables
+    $owner = "PowerShell"       # GitHub repo owner
+    $repo = "PowerShell"         # GitHub repo name
+    $outputPath = "$PWD\$assetName"  # Save to current folder
+
+    # Get latest release JSON from GitHub API
+    $latestReleaseUrl = "https://api.github.com/repos/$owner/$repo/releases/latest"
+    $releaseInfo = Invoke-RestMethod -Uri $latestReleaseUrl -Headers @{ "User-Agent" = "PowerShell" }
+    $tag = $releaseInfo.tag_name
+
+    if ($tag.StartsWith('v')) {
+        $tag = $tag.Substring(1)
+    }
+
+    $latestVersion = [System.Management.Automation.SemanticVersion]$tag
+
     
     if (-not $pwshPath) {
         Write-Host "PowerShell 7 is not installed." -ForegroundColor Yellow
-        Write-Host "Download it from: https://aka.ms/powershell-release?tag=stable" -ForegroundColor Yellow
+        Write-Host "Installing PowerShell 7 from GitHub releases 'https://github.com/PowerShell/PowerShell/releases'" -ForegroundColor Yellow
+        Write-Host "Latest version is $latestVersion" -ForegroundColor Yellow
+        $platform = "win-x64"
+
+        $assetName = "$repo-$tag-$platform.msi"  # Exact asset filename you want to download
+        # Find the asset download URL by name
+        $asset = $releaseInfo.assets | Where-Object { $_.name -eq $assetName }
+        if (-not $asset) {
+            Write-Error "Asset $assetName not found in latest release."
+        }
+
+        $downloadUrl = $asset.browser_download_url
+        Write-Host "Downloading $assetName from $downloadUrl ..."
+
+        # Download the asset
+        Invoke-WebRequest -Uri $downloadUrl -OutFile $outputPath
+
+        Write-Host "Downloaded to $outputPath"
+
+        $process = Start-Process -FilePath msiexec.exe -ArgumentList "/package", $assetName, "/quiet", "ADD_EXPLORER_CONTEXT_MENU_OPENPOWERSHELL=1", "ADD_FILE_CONTEXT_MENU_RUNPOWERSHELL=1", "ENABLE_PSREMOTING=1", "REGISTER_MANIFEST=1", "USE_MU=1", "ENABLE_MU=1", "ADD_PATH=1" -Wait -PassThru
+        Write-Output "Exit code: $($process.ExitCode)"
         return
     }
 
+    $pwshVersion = [System.Management.Automation.SemanticVersion](pwsh.exe -NoProfile -Command '$PSVersionTable.PSVersion.ToString()')
+
     # Set as default shell for SSH
+
+    Write-Host "Checking for PowerShell update" -ForegroundColor Yellow
+    if ($pwshVersion -lt $latestVersion){
+        $update = Read-Host "Do you want to update to PowerShell version $latestVersion from $pwshVersion? y/n"
+
+        if ($update -eq "y"){
+            #Install new version
+            Write-Host "Installing PowerShell version $latestVersion" -ForegroundColor Yellow
+        }
+        else{
+            Write-Host "Skipping PowerShell update" -ForegroundColor Yellow
+        }
+    }
+    else{
+        Write-Host "PowerShell version $pwshVersion is up-to-date"
+    }
     $newShellValue = "$pwshPath"
-    New-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name DefaultShell -Value $newShellValue -PropertyType String -Force
+    $shellValue = Get-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name DefaultShell
+
+    if(-not $shellValue){
+        New-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name DefaultShell -Value $newShellValue -PropertyType String -Force
     
-    Write-Host "PowerShell 7 configured as default SSH shell." -ForegroundColor Green
-    Write-Host "New users will get PowerShell 7 when connecting via SSH." -ForegroundColor Green
+        Write-Host "PowerShell 7 configured as default SSH shell." -ForegroundColor Green
+        Write-Host "New users will get PowerShell 7 when connecting via SSH." -ForegroundColor Green
+    }
+    else{
+        Write-Host "PowerShell 7 already configured as default shell" -ForegroundColor Green
+    }
 }
 
 # Add this to the main execution block:
@@ -171,14 +181,13 @@ try {
     ConfigureSSHService
     ConfigureFirewall
     SetPowerShell7AsDefaultShell  # <-- Add this line
-    ConfigureSSHKeys
-    ConfigureSSHConfig
     ShowConnectionInstructions
     
     Write-Host "Windows SSH setup completed successfully!" -ForegroundColor Green
     Write-Host "You can now SSH into this machine from your Mac." -ForegroundColor Green
+    Read-Host "Press enter to exit"
 }
 catch {
     Write-Host "An error occurred during setup: $_" -ForegroundColor Red
-    exit 1
+    Read-Host "Press enter to exit"
 }
