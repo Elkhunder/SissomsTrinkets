@@ -136,18 +136,19 @@ function SetPowerShell7AsDefaultShell {
         Invoke-WebRequest -Uri $downloadUrl -OutFile $outputPath
 
         Write-Host "Downloaded to $outputPath"
+        Write-Host "Installing $assetName, this will take a few minutes..."
 
         $process = Start-Process -FilePath msiexec.exe -ArgumentList "/package", $assetName, "/quiet", "ADD_EXPLORER_CONTEXT_MENU_OPENPOWERSHELL=1", "ADD_FILE_CONTEXT_MENU_RUNPOWERSHELL=1", "ENABLE_PSREMOTING=1", "REGISTER_MANIFEST=1", "USE_MU=1", "ENABLE_MU=1", "ADD_PATH=1" -Wait -PassThru
-        Write-Output "Exit code: $($process.ExitCode)"
+        Write-Output "Installed $assetName, Exit code: $($process.ExitCode)"
         return
     }
 
-    $pwshVersion = [System.Management.Automation.SemanticVersion](pwsh.exe -NoProfile -Command '$PSVersionTable.PSVersion.ToString()')
+    $pwshVersion = [version](pwsh.exe -NoProfile -Command '$PSVersionTable.PSVersion.ToString()')
 
     # Set as default shell for SSH
 
     Write-Host "Checking for PowerShell update" -ForegroundColor Yellow
-    if ($pwshVersion -lt [System.Management.Automation.SemanticVersion]$latestVersion){
+    if ($pwshVersion -lt $latestVersion){
         $update = Read-Host "Do you want to update to PowerShell version $latestVersion from $pwshVersion? y/n"
 
         if ($update -eq "y"){
@@ -162,7 +163,7 @@ function SetPowerShell7AsDefaultShell {
         Write-Host "PowerShell version $pwshVersion is up-to-date"
     }
     $newShellValue = "$pwshPath"
-    $shellValue = Get-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name DefaultShell
+    $shellValue = Get-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name DefaultShell -ErrorAction SilentlyContinue
 
     if(-not $shellValue){
         New-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name DefaultShell -Value $newShellValue -PropertyType String -Force
