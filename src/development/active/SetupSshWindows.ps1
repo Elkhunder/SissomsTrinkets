@@ -113,7 +113,7 @@ function SetPowerShell7AsDefaultShell {
         $tag = $tag.Substring(1)
     }
 
-    $latestVersion = [System.Management.Automation.SemanticVersion]$tag
+    $latestVersion = [version]$tag
 
     
     if (-not $pwshPath) {
@@ -147,7 +147,7 @@ function SetPowerShell7AsDefaultShell {
     # Set as default shell for SSH
 
     Write-Host "Checking for PowerShell update" -ForegroundColor Yellow
-    if ($pwshVersion -lt $latestVersion){
+    if ($pwshVersion -lt [System.Management.Automation.SemanticVersion]$latestVersion){
         $update = Read-Host "Do you want to update to PowerShell version $latestVersion from $pwshVersion? y/n"
 
         if ($update -eq "y"){
