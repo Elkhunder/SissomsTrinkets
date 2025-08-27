@@ -560,28 +560,53 @@
         }
 
         /**
-         * Copies the text content of the target element to the clipboard.
+         * Copies the text content of the target element to the clipboard, with fallback for restricted environments.
          */
         copyTextFromElement() {
-            const elementId=this.elementId;
+            const elementId = this.elementId;
             if (!elementId) {
                 console.error("Attribute 'element-id' is required.");
                 return;
             }
-            const targetElement=document.getElementById(elementId);
+            const targetElement = document.getElementById(elementId);
             if (targetElement) {
-                const textToCopy=targetElement.textContent.trim();
+                const textToCopy = targetElement.textContent.trim();
                 if (textToCopy) {
-                    navigator.clipboard
-                        .writeText(textToCopy)
-                        .then(() => this.showToast("Copied to clipboard!"))
-                        .catch(err => console.error("Failed to copy text: ", err));
+                    // Try modern clipboard API first
+                    if (navigator.clipboard && window.isSecureContext) {
+                        navigator.clipboard
+                            .writeText(textToCopy)
+                            .then(() => this.showToast("Copied to clipboard!"))
+                            .catch(() => this.fallbackCopyText(textToCopy));
+                    } else {
+                        this.fallbackCopyText(textToCopy);
+                    }
                 } else {
                     console.error("The target element has no text content to copy.");
                 }
             } else {
                 console.error(`No element found with id "${elementId}".`);
             }
+        }
+
+        /**
+         * Fallback copy method using a temporary textarea and execCommand.
+         */
+        fallbackCopyText(textToCopy) {
+            const textarea = document.createElement("textarea");
+            textarea.value = textToCopy;
+            textarea.setAttribute("readonly", "");
+            textarea.style.position = "absolute";
+            textarea.style.left = "-9999px";
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand("copy");
+                this.showToast("Copied to clipboard!");
+            } catch (err) {
+                alert("Copy failed. Please copy manually.");
+            }
+            document.body.removeChild(textarea);
         }
 
         showToast(message) {
