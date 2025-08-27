@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang = "en">
+<head>
+    <meta charset = "UTF-8"/>
+    <title>PowerShell Cheat Sheet</title>
+    <style>
+        /* 
+          Modern dark theme with clean typography and subtle transitions.
+          All styling is contained here for portability.
+        */
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            font-size: 16px;
+            background: #1F1F1F;
+            color: #E0E0E0;
+            line-height: 1.6;
+        }
+
+        header, footer {
+            background: linear-gradient(90deg, #5D5FEF 0%, #9845E8 100%);
+            color: #ffffff;
+            padding: 1.5rem 1rem;
+            text-align: center;
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        header h1, footer p {
+            margin: 0;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 2rem auto;
+            background: #2D2D2D;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+        }
+
+        h2, h3 {
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+
+        h2 {
+            color: #F8F8F8;
+            border-bottom: 2px solid #444;
+            padding-bottom: 0.5rem;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        nav li {
+            position: relative;
+        }
+
+        nav a {
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        nav a:hover {
+            color: #F5F5F5;
+        }
+
+        section {
+            margin-bottom: 2rem;
+        }
+
+        ul {
+            list-style: disc inside;
+            padding-left: 1rem;
+        }
+        
+        .subtitle {
+            margin: 1rem 0;
+            display: block;
+        }
+
+        code {
+            padding: 1.5rem;
+            background: #1E1E1E;
+            color: #C5C5C5;
+            font-family: "Consolas", "Courier New", monospace;
+            border-radius: 6px;
+        }
+        .inline-code {
+            padding: 0.2rem;
+            margin: 0;
+            background: #1E1E1E;
+            color: #C5C5C5;
+        }
+        
+        pre:has(code){
+            position: relative;
+        }
+
+        pre code {
+            padding-left: 20px;
+            text-align: left;
+            display: block;
+        }
+
+        pre {
+            margin: 1rem 0;
+        }
+
+        /* Subtle hover effect on code blocks */
+        pre:hover {
+            background-color: #2A2A2A;
+        }
+        code:hover {
+            background-color: #2A2A2A;
+        }
+
+        .note {
+            font-style: italic;
+            background: #333;
+            border-left: 5px solid #5D5FEF;
+            padding: 1rem;
+            margin: 1rem 0;
+            color: #E0E0E0;
+            border-radius: 6px;
+        }
+
+        .note strong {
+            color: #fff;
+        }
+
+        /* Footer styling */
+        footer {
+            margin-top: 2rem;
+        }
+
+        footer p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 6px;
+            background: linear-gradient(135deg, #5D5FEF, #9845E8);
+            color: #FFF;
+            font-family: 'Roboto', sans-serif;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s ease, background 0.2s ease;
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #6A6FF9, #A055F9);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.25);
+        }
+        
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Toast styling */
+        #copyToast {
+            position: fixed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            bottom: 20px;
+            right: 20px;
+            background: #5D5FEF;
+            color: white;
+            padding: 10px 15px;
+            box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+            font-size: 13px;
+            font-weight: bold;
+            transform: translateY(20px);
+            transition: opacity 0.4s, transform 0.4s;
+            z-index: 1000;
+        }
+
+        /* Show the toast message */
+        .toast-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast-hidden {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        .example {
+            display: block;
+            margin-top: .5rem;
+            margin-bottom: .5rem;
+            margin-left: 2rem;
+        }
+
+    </style>
+</head>
+<body>
+<header>
+    <h1>PowerShell Cheat Sheet</h1>
+    <nav>
+        <ul>
+            <li><a href = "#intro">Introduction</a></li>
+            <li><a href = "#basics">Basic Cmdlets</a></li>
+            <li><a href = "#pipelines">Pipelines</a></li>
+            <li><a href = "#remoting">Remoting &amp; Remote Management</a></li>
+            <li><a href = "#gathering-info">Gathering Info</a></li>
+            <li><a href = "#use-cases">Use Cases</a></li>
+        </ul>
+    </nav>
+</header>
+
+<main>
+    <section id = "intro">
+        <h2>Introduction</h2>
+        <p>
+            PowerShell is a cross-platform task automation and configuration management framework consisting of a
+            command-line
+            shell and a scripting language built on .NET. It is widely used by system administrators and power users for
+            managing servers and computers, both locally and remotely.
+        </p>
+    </section>
+
+    <section id = "basics">
+        <h2>Basic Cmdlets</h2>
+        <ul>
+            <li>
+                <strong>Get-Help &lt;Command&gt;</strong>: Displays help about PowerShell cmdlets.
+                <br><div class="example"><em>Example:</em> <code class="inline-code">Get-Help Get-Service</code></div>
+            </li>
+            <li>
+                <strong>Get-Command</strong>: Lists all available commands in the current session or narrows it down by
+                specifying parameters.
+                <br><div class="example"><em>Example:</em> <code class="inline-code">Get-Command -Name *process*</code></div>
+            </li>
+            <li>
+                <strong>Get-Alias</strong>: Shows cmdlet aliases available in the current session.
+                <br><div class="example"><em>Example:</em> <code class="inline-code">Get-Alias -Name gcm</code></div>
+            </li>
+            <li>
+                <strong>Get-ExecutionPolicy</strong>: Displays the current PowerShell script execution policy.
+                <br><div class="example"><em>Example:</em><code class="inline-code">Get-ExecutionPolicy</code></div>
+            </li>
+        </ul>
+        <p>
+            For additional details such as examples, parameter descriptions, and usage, use the <code class="inline-code">-Full</code>
+            parameter:
+        </p>
+        <pre><button onclick="copyToClipboard('getHelpFull')">Copy</button><code id="getHelpFull">Get-Help Get-Service -Full</code></pre>
+    </section>
+
+    <section id = "pipelines">
+        <h2>Working with Pipelines</h2>
+        <p>
+            The PowerShell pipeline (<code class="inline-code">|</code>) passes the output of one cmdlet as input to another, allowing you
+            to chain
+            commands together. For example, you can list running processes and then stop one by name:
+        </p>
+        <pre><button onclick="copyToClipboard('getProcessPipeline')">Copy</button><code id="getProcessPipeline">Get-Process | Where-Object { $_.Name -eq "notepad" } | Stop-Process</code></pre>
+        <p>
+            In this pipeline, <code class="inline-code">Get-Process</code> retrieves all running processes. The filtered results (where the
+            process
+            name is "notepad") are passed down the pipeline to <code class="inline-code">Stop-Process</code>, stopping that process.
+        </p>
+    </section>
+
+    <section id = "remoting">
+        <h2>Remoting &amp; Remote Management</h2>
+        <p>
+            PowerShell remoting allows you to run cmdlets and scripts on remote computers via WinRM (Windows Remote
+            Management). Some key cmdlets include:
+        </p>
+        <ul>
+            <li><strong>Enable-PSRemoting</strong>: Configures the local computer to receive remote commands.</li>
+            <li><strong>Enter-PSSession</strong>: Starts an interactive session with a remote computer.</li>
+            <li><strong>Invoke-Command</strong>: Runs commands on local or remote computers.</li>
+        </ul>
+        <pre><copy-button element-id="invokeCommand"></copy-button><code id="invokeCommand">Invoke-Command -ComputerName Server01 -ScriptBlock { Get-Service }
+Enter-PSSession -ComputerName Server01
+</code></pre>
+        <p>
+            You can also use <strong>WS-Management</strong> or <strong>SSH-based remoting</strong> (in newer versions)
+            to manage
+            systems that support these protocols.
+        </p>
+    </section>
+
+    <section id = "gathering-info">
+        <h2>Gathering System/Hardware Info</h2>
+        <p>
+            PowerShell provides <strong>CIM (Common Information Model) cmdlets</strong> to gather system, hardware, and
+            software details—both locally and remotely. Here are some common examples:
+        </p>
+        <ul>
+            <li><code class="inline-code">Get-CimInstance -ClassName Win32_OperatingSystem</code></li>
+            <li><code class="inline-code">Get-CimInstance -ClassName Win32_ComputerSystem</code></li>
+            <li>
+                <strong>Registry Queries:</strong><br>
+                Access registry keys using <code class="inline-code">Get-ItemProperty</code> or <code class="inline-code">Get-ItemPropertyValue</code>.
+            </li>
+            <li>
+                <strong>Environment Variables:</strong><br>
+                Use the <code class="inline-code">$Env:</code> drive, for example <code class="inline-code">$Env:Path</code>, to retrieve environment settings.
+            </li>
+            <li>
+                <strong>System APIs:</strong><br>
+                Many scripts internally use .NET classes that call native Windows APIs for
+                deeper insights.
+            </li>
+        </ul>
+        <p>
+            Combine these methods with remoting to retrieve information from multiple remote systems:
+        </p>
+        <pre><code>Invoke-Command -ComputerName Server01,Server02 -ScriptBlock {
+    Get-CimInstance -ClassName Win32_BIOS
+}
+</code></pre>
+    </section>
+
+    <section id = "use-cases">
+        <h2>Common Use Cases for Desktop Support</h2>
+        <p>
+            Below are practical scenarios where PowerShell can simplify day-to-day tasks. These examples highlight
+            built-in
+            techniques that you can adapt to your environment:
+        </p>
+        <ul>
+            <li>
+                <strong>Installing Language Packages</strong><br>
+                You can use DISM to install language packs:
+                <pre><code>DISM /Online /Add-Capability /CapabilityName:Language.Basic~~~&lt;Culture&gt;~0.0.1.0
+DISM /Online /Add-Capability /CapabilityName:Language.Handwriting~~~&lt;Culture&gt;~0.0.1.0
+</code></pre>
+                (Replace <code class="inline-code">&lt;Culture&gt;</code> with your desired language code, such as "en-US" or "fr-FR".)
+            </li>
+            <li>
+                <strong>Getting the Current User</strong><br>
+                <pre><code>[System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+</code></pre>
+                or simply:
+                <pre><code>$Env:USERNAME
+</code></pre>
+            </li>
+            <li>
+                <strong>Removing a User Profile</strong><br>
+                <pre><code>Get-CimInstance -ClassName Win32_UserProfile | Where-Object {
+    $_.LocalPath -like "*&lt;username&gt;*"
+} | Remove-CimInstance
+</code></pre>
+                (Replace <code class="inline-code">&lt;username&gt;</code> with the profile you want to remove.)
+            </li>
+            <li>
+                <strong>Renaming Printers</strong><br>
+                <pre><code>Get-Printer -Name "OldPrinterName" | Rename-Printer -NewName "NewPrinterName"
+</code></pre>
+            </li>
+            <li>
+                <strong>Clearing Print Queues</strong><br>
+                <pre><code>Get-Printer | ForEach-Object {
+    Get-PrintJob -PrinterName $_.Name | Remove-PrintJob
+}
+</code></pre>
+                This finds all printers, lists their print jobs, and removes them.
+            </li>
+            <li>
+                <strong>Restarting the Print Spooler Service</strong><br>
+                <pre><code>Stop-Service -Name Spooler -Force
+Start-Service -Name Spooler
+</code></pre>
+            </li>
+            <li>
+                <strong>Restarting Windows Explorer</strong><br>
+                <pre style="position: relative;"><!-- 
+                Copy Button Styled to Appear Inside 
+                --><button onclick="copyToClipboard('explorerCode')">Copy</button><!-- 
+                Copy Button Styled to Appear Inside 
+                --><code id="explorerCode">Stop-Process -Name explorer
+Start-Process explorer</code></pre>
+
+            </li>
+            <li>
+                <strong >Getting Current Sessions</strong><br>
+                <pre><code>quser
+</code></pre>
+                or:
+                <pre><code>Get-CimInstance -ClassName Win32_LogonSession
+</code></pre>
+            </li>
+            <li>
+                <strong>Software Installation &amp; Removal Automation</strong><br>
+                Use <code class="inline-code">Start-Process</code> with MSI or EXE installers to silently install/remove software:
+                <pre><code>Start-Process msiexec.exe -ArgumentList "/i path\to\installer.msi /quiet /norestart" -Wait
+</code></pre>
+            </li>
+            <li>
+                <strong>Network Adapter Configuration</strong><br>
+                View adapters:
+                <pre><code>Get-NetAdapter
+</code></pre>
+                Disable or enable an adapter:
+                <pre><code>Disable-NetAdapter -Name "Ethernet0" -Confirm:$false
+Enable-NetAdapter -Name "Ethernet0"
+</code></pre>
+            </li>
+        </ul>
+        <p>
+            Each of these examples can be used locally or extended to remote systems by leveraging
+            <code class="inline-code">Invoke-Command</code>
+            or other remoting options, making PowerShell an essential tool in your desktop support toolkit.
+        </p>
+    </section>
+</main>
+
+<footer>
+    <p>© 2025 PowerShell Cheat Sheet</p>
+</footer>
+<div id="copyToast" class="toast-hidden">Copied to clipboard!</div>
+
+</body>
+<script>
+    /**
+     * Copy the text content of a pre/code block to the clipboard.
+     * @param {string} id - The ID of the pre/code block.
+     */
+    function copyToClipboard(id) {
+        const text = document.getElementById(id).innerText; // Get text from the specified block
+        navigator.clipboard.writeText(text).then(() => {
+            console.log('Text copied to clipboard, showing toast message');
+            showToast();
+        }).catch(err => {
+            console.error('Failed to copy text: ', err);
+        });
+    }
+
+    /**
+     * Shows a toast message indicating the text was copied.
+     */
+    function showToast() {
+        const toast = document.getElementById('copyToast');
+        console.log('Showing toast message');
+        toast.classList.remove('toast-hidden');
+        toast.classList.add('toast-visible');
+        setTimeout(() => {
+            console.log('Hiding toast message');
+            toast.classList.remove('toast-visible');
+            toast.classList.add('toast-hidden');
+        }, 2000); // Toast disappears after 2 seconds
+    }
+
+    /**
+     * A modern copy button to copy text from an element to the clipboard.
+     *
+     * Attributes:
+     * - `element-id`: The id of the target element to copy content from.
+     *
+     * Example:
+     * ```html
+     * <modern-copy-button element-id="inputElement">Copy</modern-copy-button>
+     * ```
+     */
+
+    class CopyButton extends HTMLElement {
+        // Fires when the component is added to the DOM
+        connectedCallback() {
+            const template = document.createElement("template");
+            template.innerHTML = `
+                <style>
+                    button {
+                        background-color: #0078d7; /* Default button color */
+                        color: white;
+                        border: none;
+                        border-radius: 6px;
+                        font-family: Arial, sans-serif;
+                        font-size: 12px;
+                        font-weight: 500;
+                        padding: 8px 12px;
+                        cursor: pointer;
+                        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                        transition: background-color 0.2s ease, transform 0.2s ease;
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                    }
+
+                    button:hover {
+                        background-color: #005fb8;
+                        transform: translateY(-2px);
+                        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+                    }
+
+                    button:active {
+                        transform: translateY(0);
+                        box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+                    }
+
+                    .icon {
+                        font-size: 14px;
+                    }
+                </style>
+                <button>
+                    <span class="icon">📋</span>
+                    <slot></slot>
+                </button>
+            `;
+
+            // Attach a shadow DOM for encapsulation
+            const shadow = this.attachShadow({ mode: "open" });
+            shadow.appendChild(template.content.cloneNode(true));
+
+            // Add event listener to button
+            const button = shadow.querySelector("button");
+            button.addEventListener("click", () => this.copyTextFromElement());
+        }
+
+        // Copy the text content of the target element
+        copyTextFromElement() {
+            const elementId = this.getAttribute("element-id"); // Get the provided element-id
+            const targetElement = document.getElementById(elementId);
+
+            if (targetElement) {
+                // Copy the element's text to the clipboard
+                const textToCopy = targetElement.textContent || targetElement.value || "";
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    alert(`Copied: "${textToCopy}"`);
+                });
+            } else {
+                console.error(`No element found with id "${elementId}"`);
+            }
+        }
+    }
+
+    // Define the custom element
+    customElements.define("copy-button", CopyButton);
+
+</script>
+
+</html>
