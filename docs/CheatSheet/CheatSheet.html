@@ -87,7 +87,7 @@
             list-style: disc inside;
             padding-left: 1rem;
         }
-        
+
         .subtitle {
             margin: 1rem 0;
             display: block;
@@ -100,14 +100,15 @@
             font-family: "Consolas", "Courier New", monospace;
             border-radius: 6px;
         }
+
         .inline-code {
             padding: 0.2rem;
             margin: 0;
             background: #1E1E1E;
             color: #C5C5C5;
         }
-        
-        pre:has(code){
+
+        pre:has(code) {
             position: relative;
         }
 
@@ -125,6 +126,7 @@
         pre:hover {
             background-color: #2A2A2A;
         }
+
         code:hover {
             background-color: #2A2A2A;
         }
@@ -175,7 +177,7 @@
             transform: translateY(-2px);
             box-shadow: 0 6px 8px rgba(0, 0, 0, 0.25);
         }
-        
+
         button:active {
             transform: translateY(0);
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
@@ -212,6 +214,7 @@
             opacity: 0;
             transform: translateY(10px);
         }
+
         .example {
             display: block;
             margin-top: .5rem;
@@ -252,41 +255,50 @@
         <ul>
             <li>
                 <strong>Get-Help &lt;Command&gt;</strong>: Displays help about PowerShell cmdlets.
-                <br><div class="example"><em>Example:</em> <code class="inline-code">Get-Help Get-Service</code></div>
+                <br>
+                <div class = "example"><em>Example:</em> <code class = "inline-code">Get-Help Get-Service</code></div>
             </li>
             <li>
                 <strong>Get-Command</strong>: Lists all available commands in the current session or narrows it down by
                 specifying parameters.
-                <br><div class="example"><em>Example:</em> <code class="inline-code">Get-Command -Name *process*</code></div>
+                <br>
+                <div class = "example"><em>Example:</em> <code class = "inline-code">Get-Command -Name *process*</code>
+                </div>
             </li>
             <li>
                 <strong>Get-Alias</strong>: Shows cmdlet aliases available in the current session.
-                <br><div class="example"><em>Example:</em> <code class="inline-code">Get-Alias -Name gcm</code></div>
+                <br>
+                <div class = "example"><em>Example:</em> <code class = "inline-code">Get-Alias -Name gcm</code></div>
             </li>
             <li>
                 <strong>Get-ExecutionPolicy</strong>: Displays the current PowerShell script execution policy.
-                <br><div class="example"><em>Example:</em><code class="inline-code">Get-ExecutionPolicy</code></div>
+                <br>
+                <div class = "example"><em>Example:</em><code class = "inline-code">Get-ExecutionPolicy</code></div>
             </li>
         </ul>
         <p>
-            For additional details such as examples, parameter descriptions, and usage, use the <code class="inline-code">-Full</code>
+            For additional details such as examples, parameter descriptions, and usage, use the
+            <code class = "inline-code">-Full</code>
             parameter:
         </p>
-        <pre><button onclick="copyToClipboard('getHelpFull')">Copy</button><code id="getHelpFull">Get-Help Get-Service -Full</code></pre>
+        <pre><copy-button element-id="getHelpFull"></copy-button><code id = "getHelpFull">Get-Help Get-Service -Full</code></pre>
     </section>
 
     <section id = "pipelines">
         <h2>Working with Pipelines</h2>
         <p>
-            The PowerShell pipeline (<code class="inline-code">|</code>) passes the output of one cmdlet as input to another, allowing you
+            The PowerShell pipeline (<code class = "inline-code">|</code>) passes the output of one cmdlet as input to
+            another, allowing you
             to chain
             commands together. For example, you can list running processes and then stop one by name:
         </p>
-        <pre><button onclick="copyToClipboard('getProcessPipeline')">Copy</button><code id="getProcessPipeline">Get-Process | Where-Object { $_.Name -eq "notepad" } | Stop-Process</code></pre>
+        <pre><copy-button element-id="getProcessPipeline"></copy-button><code id = "getProcessPipeline">Get-Process | Where-Object { $_.Name -eq "notepad" } | Stop-Process</code></pre>
         <p>
-            In this pipeline, <code class="inline-code">Get-Process</code> retrieves all running processes. The filtered results (where the
+            In this pipeline, <code class = "inline-code">Get-Process</code> retrieves all running processes. The
+            filtered results (where the
             process
-            name is "notepad") are passed down the pipeline to <code class="inline-code">Stop-Process</code>, stopping that process.
+            name is "notepad") are passed down the pipeline to <code class = "inline-code">Stop-Process</code>, stopping
+            that process.
         </p>
     </section>
 
@@ -298,12 +310,15 @@
         </p>
         <ul>
             <li><strong>Enable-PSRemoting</strong>: Configures the local computer to receive remote commands.</li>
+            <li><strong>Test-WsMan</strong>: Test a connection attempt with a remote computer</li>
+            <li><strong>Get-Credential</strong>: Opens a prompt for credentials. It securely stores the username and password in a PSCredential object.</li>
             <li><strong>Enter-PSSession</strong>: Starts an interactive session with a remote computer.</li>
             <li><strong>Invoke-Command</strong>: Runs commands on local or remote computers.</li>
+            <li><strong>New-CimSession</strong>: client-side object representing a connection to a local computer or a remote computer.</li>
         </ul>
-        <pre><copy-button element-id="invokeCommand"></copy-button><code id="invokeCommand">Invoke-Command -ComputerName Server01 -ScriptBlock { Get-Service }
-Enter-PSSession -ComputerName Server01
-</code></pre>
+        <pre><copy-button element-id = "getCredential"></copy-button><code id = "getCredential">$cred = Get-Credential</code></pre>
+        <pre><copy-button element-id = "invokeCommand"></copy-button><code id = "invokeCommand">Invoke-Command -ComputerName Server01 -Credential $cred -ScriptBlock { Get-Service }</code></pre>
+        <pre><copy-button element-id = "enterPsSession"></copy-button><code id = "enterPsSession">Enter-PSSession -ComputerName Server01 -Credential $cred</code></pre>
         <p>
             You can also use <strong>WS-Management</strong> or <strong>SSH-based remoting</strong> (in newer versions)
             to manage
@@ -318,29 +333,37 @@ Enter-PSSession -ComputerName Server01
             software details—both locally and remotely. Here are some common examples:
         </p>
         <ul>
-            <li><code class="inline-code">Get-CimInstance -ClassName Win32_OperatingSystem</code></li>
-            <li><code class="inline-code">Get-CimInstance -ClassName Win32_ComputerSystem</code></li>
+            <li><code class = "inline-code">Get-CimInstance -ClassName Win32_OperatingSystem</code></li>
+            <li><code class = "inline-code">Get-CimInstance -ClassName Win32_ComputerSystem</code></li>
+        </ul>
+        <strong style="display: block; margin-top: 1rem; margin-bottom: .5rem">Registry Queries:</strong>
+        <ul>
             <li>
-                <strong>Registry Queries:</strong><br>
-                Access registry keys using <code class="inline-code">Get-ItemProperty</code> or <code class="inline-code">Get-ItemPropertyValue</code>.
+                Access registry keys using <code class = "inline-code">Get-ItemProperty</code> or
+                <code class = "inline-code">Get-ItemPropertyValue</code>.
             </li>
+        </ul>
+        <strong style="display: block; margin-top: 1rem; margin-bottom: .5rem">Environment Variables:</strong>
+        <ul>
             <li>
-                <strong>Environment Variables:</strong><br>
-                Use the <code class="inline-code">$Env:</code> drive, for example <code class="inline-code">$Env:Path</code>, to retrieve environment settings.
+                Use the <code class = "inline-code">$Env:</code> drive, for example <code class = "inline-code">$Env:Path</code>,
+                to retrieve environment settings.
             </li>
+        </ul>
+        <strong style="display: block; margin-top: 1rem; margin-bottom: .5rem">System APIs:</strong>
+        <ul>
             <li>
-                <strong>System APIs:</strong><br>
                 Many scripts internally use .NET classes that call native Windows APIs for
                 deeper insights.
             </li>
         </ul>
-        <p>
+        <p style="margin-top: 1rem">
             Combine these methods with remoting to retrieve information from multiple remote systems:
         </p>
-        <pre><code>Invoke-Command -ComputerName Server01,Server02 -ScriptBlock {
+        <pre><copy-button element-id="invokeGetCimInstance"></copy-button><code id="invokeGetCimInstance">Invoke-Command -ComputerName Server01,Server02 -Credential $cred -ScriptBlock {
     Get-CimInstance -ClassName Win32_BIOS
-}
-</code></pre>
+}</code></pre>
+        <pre><copy-button element-id="getCimInstance"></copy-button><code id="getCimInstance">Get-CimInstance -ComputerName Server01,Server02 -Credential $cred</code></pre>
     </section>
 
     <section id = "use-cases">
@@ -354,210 +377,226 @@ Enter-PSSession -ComputerName Server01
             <li>
                 <strong>Installing Language Packages</strong><br>
                 You can use DISM to install language packs:
-                <pre><code>DISM /Online /Add-Capability /CapabilityName:Language.Basic~~~&lt;Culture&gt;~0.0.1.0
-DISM /Online /Add-Capability /CapabilityName:Language.Handwriting~~~&lt;Culture&gt;~0.0.1.0
-</code></pre>
-                (Replace <code class="inline-code">&lt;Culture&gt;</code> with your desired language code, such as "en-US" or "fr-FR".)
+                <pre><copy-button element-id="installBasicLanguage"></copy-button><code id="installBasicLanguage">DISM /Online /Add-Capability /CapabilityName:Language.Basic~~~&lt;Culture&gt;~0.0.1.0</code></pre>
+                <pre><copy-button element-id="installHandwritingLanguage"></copy-button><code id="installHandwritingLanguage">DISM /Online /Add-Capability /CapabilityName:Language.Handwriting~~~&lt;Culture&gt;~0.0.1.0</code></pre>
+                (Replace <code class = "inline-code">&lt;Culture&gt;</code> with your desired language code, such as
+                "en-US" or "fr-FR".)
             </li>
             <li>
                 <strong>Getting the Current User</strong><br>
-                <pre><code>[System.Security.Principal.WindowsIdentity]::GetCurrent().Name
-</code></pre>
+                <pre><copy-button element-id="getUserSecPrincipal"></copy-button><code id="getUserSecPrincipal">[System.Security.Principal.WindowsIdentity]::GetCurrent().Name</code></pre>
                 or simply:
-                <pre><code>$Env:USERNAME
-</code></pre>
+                <pre><copy-button element-id = "getUserEnvVariable"></copy-button><code id="getUserEnvVariable">$Env:USERNAME</code></pre>
             </li>
             <li>
                 <strong>Removing a User Profile</strong><br>
-                <pre><code>Get-CimInstance -ClassName Win32_UserProfile | Where-Object {
+                <pre><copy-button element-id = "removeUserProfile"></copy-button><code id="removeUserProfile">Get-CimInstance -ClassName Win32_UserProfile | Where-Object {
     $_.LocalPath -like "*&lt;username&gt;*"
-} | Remove-CimInstance
-</code></pre>
-                (Replace <code class="inline-code">&lt;username&gt;</code> with the profile you want to remove.)
+} | Remove-CimInstance</code></pre>
+                (Replace <code class = "inline-code">&lt;username&gt;</code> with the profile you want to remove.)
             </li>
             <li>
                 <strong>Renaming Printers</strong><br>
-                <pre><code>Get-Printer -Name "OldPrinterName" | Rename-Printer -NewName "NewPrinterName"
-</code></pre>
+                <pre><copy-button element-id = "renamePrinter"></copy-button><code id="renamePrinter">Get-Printer -Name "OldPrinterName" | Rename-Printer -NewName "NewPrinterName"</code></pre>
             </li>
             <li>
                 <strong>Clearing Print Queues</strong><br>
-                <pre><code>Get-Printer | ForEach-Object {
+                <pre><copy-button element-id = "clearPrintJobs"></copy-button><code id="clearPrintJobs">Get-Printer | ForEach-Object {
     Get-PrintJob -PrinterName $_.Name | Remove-PrintJob
-}
-</code></pre>
+}</code></pre>
                 This finds all printers, lists their print jobs, and removes them.
             </li>
             <li>
                 <strong>Restarting the Print Spooler Service</strong><br>
-                <pre><code>Stop-Service -Name Spooler -Force
-Start-Service -Name Spooler
-</code></pre>
+                <pre><copy-button element-id = "stopPrintSpooler"></copy-button><code id="stopPrintSpooler">Stop-Service -Name Spooler -Force</code></pre>
+                <pre><copy-button element-id = "startPrintSpooler"></copy-button><code id="startPrintSpooler">Start-Service -Name Spooler</code></pre>
             </li>
             <li>
                 <strong>Restarting Windows Explorer</strong><br>
-                <pre style="position: relative;"><!-- 
-                Copy Button Styled to Appear Inside 
-                --><button onclick="copyToClipboard('explorerCode')">Copy</button><!-- 
-                Copy Button Styled to Appear Inside 
-                --><code id="explorerCode">Stop-Process -Name explorer
-Start-Process explorer</code></pre>
+                <pre><copy-button element-id = "stopWindowsExplorer"></copy-button><code id = "stopWindowsExplorer">Stop-Process -Name explorer</code></pre>
+                <pre><copy-button element-id = "startWindowsExplorer"></copy-button><code id = "startWindowsExplorer">Start-Process explorer</code></pre>
 
             </li>
             <li>
-                <strong >Getting Current Sessions</strong><br>
-                <pre><code>quser
-</code></pre>
+                <strong>Getting Current Sessions</strong><br>
+                <pre><copy-button element-id = "getCurrentUserSessionQUser"></copy-button><code id="getCurrentUserSessionQUser">quser</code></pre>
                 or:
-                <pre><code>Get-CimInstance -ClassName Win32_LogonSession
-</code></pre>
+                <pre><copy-button element-id = "getCurrentUserSessionsCim"></copy-button><code id="getCurrentUserSessionsCim">Get-CimInstance -ClassName Win32_LogonSession</code></pre>
             </li>
             <li>
                 <strong>Software Installation &amp; Removal Automation</strong><br>
-                Use <code class="inline-code">Start-Process</code> with MSI or EXE installers to silently install/remove software:
-                <pre><code>Start-Process msiexec.exe -ArgumentList "/i path\to\installer.msi /quiet /norestart" -Wait
-</code></pre>
+                Use <code class = "inline-code">Start-Process</code> with MSI or EXE installers to silently
+                install/remove software:
+                <pre><copy-button element-id = "startMsiProcess"></copy-button><code id="startMsiProcess">Start-Process msiexec.exe -ArgumentList "/i path\to\installer.msi /quiet /norestart" -Wait</code></pre>
             </li>
             <li>
                 <strong>Network Adapter Configuration</strong><br>
                 View adapters:
-                <pre><code>Get-NetAdapter
-</code></pre>
+                <pre><copy-button element-id = "getNetAdapter"></copy-button><code id = "getNetAdapter">Get-NetAdapter</code></pre>
                 Disable or enable an adapter:
-                <pre><code>Disable-NetAdapter -Name "Ethernet0" -Confirm:$false
-Enable-NetAdapter -Name "Ethernet0"
-</code></pre>
+                <pre><copy-button element-id = "disableNetAdapter"></copy-button><code id = "disableNetAdapter">Disable-NetAdapter -Name "Ethernet0" -Confirm:$false</code></pre>
+                <pre><copy-button element-id = "enableNetAdapter"></copy-button><code id = "enableNetAdapter">Enable-NetAdapter -Name "Ethernet0"</code></pre>
             </li>
         </ul>
         <p>
             Each of these examples can be used locally or extended to remote systems by leveraging
-            <code class="inline-code">Invoke-Command</code>
+            <code class = "inline-code">Invoke-Command</code>
             or other remoting options, making PowerShell an essential tool in your desktop support toolkit.
         </p>
     </section>
 </main>
-
-<footer>
-    <p>© 2025 PowerShell Cheat Sheet</p>
-</footer>
-<div id="copyToast" class="toast-hidden">Copied to clipboard!</div>
-
 </body>
 <script>
-    /**
-     * Copy the text content of a pre/code block to the clipboard.
-     * @param {string} id - The ID of the pre/code block.
-     */
-    function copyToClipboard(id) {
-        const text = document.getElementById(id).innerText; // Get text from the specified block
-        navigator.clipboard.writeText(text).then(() => {
-            console.log('Text copied to clipboard, showing toast message');
-            showToast();
-        }).catch(err => {
-            console.error('Failed to copy text: ', err);
-        });
-    }
-
-    /**
-     * Shows a toast message indicating the text was copied.
-     */
-    function showToast() {
-        const toast = document.getElementById('copyToast');
-        console.log('Showing toast message');
-        toast.classList.remove('toast-hidden');
-        toast.classList.add('toast-visible');
-        setTimeout(() => {
-            console.log('Hiding toast message');
-            toast.classList.remove('toast-visible');
-            toast.classList.add('toast-hidden');
-        }, 2000); // Toast disappears after 2 seconds
-    }
-
-    /**
-     * A modern copy button to copy text from an element to the clipboard.
-     *
-     * Attributes:
-     * - `element-id`: The id of the target element to copy content from.
-     *
-     * Example:
-     * ```html
-     * <modern-copy-button element-id="inputElement">Copy</modern-copy-button>
-     * ```
-     */
-
     class CopyButton extends HTMLElement {
-        // Fires when the component is added to the DOM
-        connectedCallback() {
-            const template = document.createElement("template");
-            template.innerHTML = `
-                <style>
-                    button {
-                        background-color: #0078d7; /* Default button color */
-                        color: white;
-                        border: none;
-                        border-radius: 6px;
-                        font-family: Arial, sans-serif;
-                        font-size: 12px;
-                        font-weight: 500;
-                        padding: 8px 12px;
-                        cursor: pointer;
-                        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                        transition: background-color 0.2s ease, transform 0.2s ease;
-                        display: inline-flex;
-                        align-items: center;
-                        gap: 0.5rem;
-                    }
-
-                    button:hover {
-                        background-color: #005fb8;
-                        transform: translateY(-2px);
-                        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
-                    }
-
-                    button:active {
-                        transform: translateY(0);
-                        box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-                    }
-
-                    .icon {
-                        font-size: 14px;
-                    }
-                </style>
-                <button>
-                    <span class="icon">📋</span>
-                    <slot></slot>
-                </button>
-            `;
-
-            // Attach a shadow DOM for encapsulation
-            const shadow = this.attachShadow({ mode: "open" });
-            shadow.appendChild(template.content.cloneNode(true));
-
-            // Add event listener to button
-            const button = shadow.querySelector("button");
-            button.addEventListener("click", () => this.copyTextFromElement());
+        constructor() {
+            super();
+            // Attribute storage
+            this._elementId = null;
         }
 
-        // Copy the text content of the target element
-        copyTextFromElement() {
-            const elementId = this.getAttribute("element-id"); // Get the provided element-id
-            const targetElement = document.getElementById(elementId);
+        // Observe 'element-id' attribute
+        static get observedAttributes() {
+            return ["element-id"];
+        }
 
-            if (targetElement) {
-                // Copy the element's text to the clipboard
-                const textToCopy = targetElement.textContent || targetElement.value || "";
-                navigator.clipboard.writeText(textToCopy).then(() => {
-                    alert(`Copied: "${textToCopy}"`);
-                });
+        // Getter for 'element-id' property
+        get elementId() {
+            return this._elementId;
+        }
+
+        // Setter for 'element-id' property
+        set elementId(value) {
+            this._elementId = value;
+            if (value) {
+                this.setAttribute("element-id", value); // Reflect to HTML attribute
             } else {
-                console.error(`No element found with id "${elementId}"`);
+                this.removeAttribute("element-id");
             }
         }
+
+        // Fires when the element is added to the DOM
+        connectedCallback() {
+            const template = document.createElement("template");
+            template.innerHTML = `<style>button {
+                    position: absolute;
+                    align-items: center;
+                    top: 10px;
+                    right: 10px;
+                    padding: 5px 10px;
+                    border: none;
+                    border-radius: 6px;
+                    background: linear-gradient(135deg, #5D5FEF, #9845E8);
+                    color: #FFF;
+                    font-family: 'Roboto', sans-serif;
+                    font-size: 12px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+                    transition: transform 0.2s ease, background 0.2s ease;
+                }
+                button:hover {
+                    background: linear-gradient(135deg, #6A6FF9, #A055F9);
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.25);
+                }
+                button:active {
+                    transform: translateY(0);
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+                }
+                svg {
+                    width: 16px;
+                    height: 16px;
+                    fill: white; /* Match icon color to text color */
+                }</style><button><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M288 64C252.7 64 224 92.7 224 128L224 384C224 419.3 252.7 448 288 448L480 448C515.3 448 544 419.3 544 384L544 183.4C544 166 536.9 149.3 524.3 137.2L466.6 81.8C454.7 70.4 438.8 64 422.3 64L288 64zM160 192C124.7 192 96 220.7 96 256L96 512C96 547.3 124.7 576 160 576L352 576C387.3 576 416 547.3 416 512L416 496L352 496L352 512L160 512L160 256L176 256L176 192L160 192z"/></svg></button>`;
+            const shadow = this.attachShadow({mode: "open"});
+            shadow.appendChild(template.content.cloneNode(true));
+
+            const button = shadow.querySelector("button");
+            button.addEventListener("click", this.copyTextFromElement.bind(this));
+        }
+
+        /**
+         * Called when an observed attribute changes.
+         */
+        attributeChangedCallback(name, oldValue, newValue) {
+            if (name === "element-id") {
+                this._elementId = newValue;
+            }
+        }
+
+        /**
+         * Copies the text content of the target element to the clipboard.
+         */
+        copyTextFromElement() {
+            const elementId = this.elementId;
+            if (!elementId) {
+                console.error("Attribute 'element-id' is required.");
+                return;
+            }
+            const targetElement = document.getElementById(elementId);
+            if (targetElement) {
+                const textToCopy = targetElement.textContent.trim();
+                if (textToCopy) {
+                    navigator.clipboard
+                        .writeText(textToCopy)
+                        .then(() => this.showToast("Copied to clipboard!"))
+                        .catch(err => console.error("Failed to copy text: ", err));
+                } else {
+                    console.error("The target element has no text content to copy.");
+                }
+            } else {
+                console.error(`No element found with id "${elementId}".`);
+            }
+        }
+
+        showToast(message) {
+            let toastContainer = document.getElementById("toast-container");
+
+            // Create a toast container if it doesn't exist
+            if (!toastContainer) {
+                toastContainer = document.createElement("div");
+                toastContainer.id = "toast-container";
+                toastContainer.style.position = "fixed";
+                toastContainer.style.bottom = "20px";
+                toastContainer.style.right = "20px";
+                toastContainer.style.zIndex = "1000";
+                toastContainer.style.display = "flex";
+                toastContainer.style.flexDirection = "column";
+                toastContainer.style.gap = "10px";
+                document.body.appendChild(toastContainer);
+            }
+
+            // Create a glass effect toast element
+            const toast = document.createElement("div");
+            toast.textContent = message;
+            toast.style.background = "rgba(255, 255, 255, 0.2)"; // Transparent background
+            toast.style.backdropFilter = "blur(10px) saturate(150%)"; // Glass effect
+            toast.style.border = "1px solid rgba(255, 255, 255, 0.3)"; // Border for definition
+            toast.style.boxShadow = "0px 8px 15px rgba(0, 0, 0, 0.2)";
+            toast.style.color = "#FFFFFF";
+            toast.style.padding = "15px 20px";
+            toast.style.borderRadius = "10px";
+            toast.style.fontSize = "14px";
+            toast.style.fontFamily = "'Roboto', sans-serif";
+            toast.style.transition = "opacity 0.5s ease, transform 0.3s ease";
+            toast.style.opacity = "1";
+            toast.style.transform = "translateY(0px)";
+
+            // Append toast to the container
+            toastContainer.appendChild(toast);
+
+            // Automatically remove the toast after a delay
+            setTimeout(() => {
+                toast.style.opacity = "0"; // Fade out
+                toast.style.transform = "translateY(-20px)"; // Float upward effect
+                toast.addEventListener("transitionend", () => toast.remove());
+            }, 3000);
+        }
+
     }
 
     // Define the custom element
     customElements.define("copy-button", CopyButton);
-
 </script>
 
 </html>

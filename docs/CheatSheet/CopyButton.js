@@ -1,29 +1,29 @@
 export class CopyButton extends HTMLElement {
+    constructor() {
+        super(...arguments);
+        // Attribute storage
+        this._elementId = null;
+    }
     // Observe 'element-id' attribute
-    static get observedAttributes(): string[] {
+    static get observedAttributes() {
         return ["element-id"];
     }
-
-    // Attribute storage
-    private _elementId: string | null = null;
-
     // Getter for 'element-id' property
-    get elementId(): string | null {
+    get elementId() {
         return this._elementId;
     }
-
     // Setter for 'element-id' property
-    set elementId(value: string | null) {
+    set elementId(value) {
         this._elementId = value;
         if (value) {
             this.setAttribute("element-id", value); // Reflect to HTML attribute
-        } else {
+        }
+        else {
             this.removeAttribute("element-id");
         }
     }
-
     // Fires when the element is added to the DOM
-    connectedCallback(): void {
+    connectedCallback() {
         const template = document.createElement("template");
         template.innerHTML = `
             <style>
@@ -72,18 +72,15 @@ export class CopyButton extends HTMLElement {
                 </slot>
             </button>
         `;
-
         const shadow = this.attachShadow({ mode: "open" });
         shadow.appendChild(template.content.cloneNode(true));
-
         const button = shadow.querySelector("button");
-        button?.addEventListener("click", this.copyTextFromElement.bind(this));
+        button === null || button === void 0 ? void 0 : button.addEventListener("click", this.copyTextFromElement.bind(this));
     }
-
     /**
      * Called when an observed attribute changes.
      */
-    attributeChangedCallback(name: string, oldValue: string | null, newValue: string | null): void {
+    attributeChangedCallback(name, oldValue, newValue) {
         if (name === "element-id") {
             this._elementId = newValue;
         }
@@ -91,30 +88,29 @@ export class CopyButton extends HTMLElement {
     /**
      * Copies the text content of the target element to the clipboard.
      */
-    private copyTextFromElement(): void {
+    copyTextFromElement() {
+        var _a;
         const elementId = this.elementId;
-
         if (!elementId) {
             console.error("Attribute 'element-id' is required.");
             return;
         }
-
         const targetElement = document.getElementById(elementId);
-
         if (targetElement) {
-            const textToCopy = targetElement.textContent?.trim() || "";
+            const textToCopy = ((_a = targetElement.textContent) === null || _a === void 0 ? void 0 : _a.trim()) || "";
             if (textToCopy) {
                 navigator.clipboard.writeText(textToCopy).then(() => {
                     alert(`Copied: "${textToCopy}"`);
                 });
-            } else {
+            }
+            else {
                 console.error("The target element has no text content to copy.");
             }
-        } else {
+        }
+        else {
             console.error(`No element found with id "${elementId}".`);
         }
     }
 }
-
 // Define the custom element
 customElements.define("copy-button", CopyButton);

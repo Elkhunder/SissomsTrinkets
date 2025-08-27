@@ -1,3 +1,14 @@
 {
-
+  "compilerOptions": {
+    "target": "ES6",                          // Browser compatibility
+    "module": "ES6",                          // Use ECMAScript modules
+    "moduleResolution": "Node",               // Resolve modules like Node.js
+    "outDir": ".",                       // Output directory for compiled JS
+    "rootDir": ".",                       // Source directory
+    "strict": true,                           // Enable strict type checking
+    "esModuleInterop": true,                  // Compatible with ES modules
+    "declaration": true                       // Generate TypeScript declaration files
+  },
+  "include": ["*"],                    // Include all TS files in src folder
+  "exclude": ["node_modules", "**/*.test.ts"] // Exclude unnecessary files
 }
