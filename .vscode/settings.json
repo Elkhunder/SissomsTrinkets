@@ -9,6 +9,7 @@
         "msiexec",
         "norestart",
         "pscredential",
+        "pscustomobject",
         "quser"
     ]
 }

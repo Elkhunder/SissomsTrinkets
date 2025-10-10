@@ -14,12 +14,12 @@ function Confirm-DellCommandExists {
     .PARAMETER DownloadUrl
         The URL to download the Dell Command | Update installer if missing.
     .OUTPUTS
-        System.Management.Automation.PSCustomObject
+        DellCommandResult
         Returns objects with the following properties:
         - ComputerName: The name of the computer where Dell Command was checked/installed
         - Exists: Boolean indicating whether Dell Command | Update is present
         - Path: Full path to the dcu-cli.exe executable if found
-        - Status: Installation status - "AlreadyPresent", "Installed", or "Failed"
+        - Status: Installation status (Present, Installed, or Failed)
     .EXAMPLE
         Ensure-DellCommandExists -ComputerName "RemotePC" -Credential (Get-Credential)
     .EXAMPLE
@@ -28,7 +28,7 @@ function Confirm-DellCommandExists {
         Get-PSSession | Ensure-DellCommandExists
     #>
     [CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'Local')]
-    [OutputType([PSCustomObject])]
+    [OutputType([DellCommandResult])]
     param(
 
         [Parameter(ParameterSetName = "ComputerName", ValueFromPipeline, ValueFromPipelineByPropertyName)]
@@ -41,6 +41,7 @@ function Confirm-DellCommandExists {
         [Parameter(ParameterSetName = "PSSession", ValueFromPipeline)]
         [System.Management.Automation.Runspaces.PSSession[]]$PSSession,
 
+        [string]$DellCommandVersion = "5.5.0",
         [string]$DownloadUrl = "https://dl.dell.com/FOLDER13309338M/2/Dell-Command-Update-Application_Y5VJV_WIN64_5.5.0_A00_01.EXE"
     )
 
@@ -59,10 +60,12 @@ function Confirm-DellCommandExists {
         }
 
         $installScript = {
-            param($url, $paths)
-            $installerPath = "$env:TEMP\DellCommandUpdateInstaller.exe"
+            param($url, $paths, $version)
             try {
-                Invoke-WebRequest -Uri $url -OutFile $installerPath -UseBasicParsing -ErrorAction Stop
+                $installerPath = "C:\Temp\DellCommandInstaller_$version.exe"
+                Invoke-WebRequest -Uri $url -OutFile $installerPath -UseBasicParsing -ErrorAction Stop -Headers @{
+                    "User-Agent" = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0 Safari/537.36"
+                }
                 Start-Process -FilePath $installerPath -ArgumentList "/s" -Wait
             } catch {
                 Write-Warning "Download or installation failed: $_"
@@ -91,21 +94,21 @@ function Confirm-DellCommandExists {
                         $wasInstalled = $true
                         Write-Verbose "Dell Command | Update not found on $computer. Installing..."
                         $foundPath = Invoke-Command -ComputerName $computer -Credential $Credential `
-                                        -ScriptBlock $installScript -ArgumentList $DownloadUrl,$dellCommandPaths -ErrorAction SilentlyContinue
+                                        -ScriptBlock $installScript -ArgumentList $DownloadUrl,$dellCommandPaths,$DellCommandVersion -ErrorAction SilentlyContinue
                     }
 
                     $status = if ($foundPath) {
-                        if ($wasInstalled) { "Installed" } else { "AlreadyPresent" }
+                        if ($wasInstalled) { [DellCommandStatus]::Installed } else { [DellCommandStatus]::Present }
                     } else {
-                        "Failed"
+                        [DellCommandStatus]::Failed
                     }
 
-                    $results += [pscustomobject]@{
-                        ComputerName = $computer
-                        Exists       = [bool]$foundPath
-                        Path         = $foundPath
-                        Status       = $status
-                    }
+                    $results += [DellCommandResult]::new(
+                        $computer,
+                        [bool]$foundPath,
+                        $foundPath,
+                        $status
+                    )
                 }
             }
 
@@ -119,21 +122,21 @@ function Confirm-DellCommandExists {
                         $wasInstalled = $true
                         Write-Verbose "Dell Command | Update not found on $($session.ComputerName). Installing..."
                         $foundPath = Invoke-Command -Session $session `
-                                        -ScriptBlock $installScript -ArgumentList $DownloadUrl,$dellCommandPaths -ErrorAction SilentlyContinue
+                                        -ScriptBlock $installScript -ArgumentList $DownloadUrl,$dellCommandPaths,$DellCommandVersion -ErrorAction SilentlyContinue
                     }
 
                     $status = if ($foundPath) {
-                        if ($wasInstalled) { "Installed" } else { "AlreadyPresent" }
+                        if ($wasInstalled) { [DellCommandStatus]::Installed } else { [DellCommandStatus]::Present }
                     } else {
-                        "Failed"
+                        [DellCommandStatus]::Failed
                     }
 
-                    $results += [pscustomobject]@{
-                        ComputerName = $session.ComputerName
-                        Exists       = [bool]$foundPath
-                        Path         = $foundPath
-                        Status       = $status
-                    }
+                    $results += [DellCommandResult]::new(
+                        $session.ComputerName,
+                        [bool]$foundPath,
+                        $foundPath,
+                        $status
+                    )
                 }
             }
 
@@ -144,25 +147,24 @@ function Confirm-DellCommandExists {
                 if (-not $foundPath -and $PSCmdlet.ShouldProcess($env:COMPUTERNAME, "Install Dell Command | Update")) {
                     $wasInstalled = $true
                     Write-Verbose "Dell Command | Update not found on $env:COMPUTERNAME. Installing..."
-                    $foundPath = & $installScript $DownloadUrl $dellCommandPaths
+                    $foundPath = & $installScript $DownloadUrl $dellCommandPaths $DellCommandVersion
                 }
 
                 $status = if ($foundPath) {
-                    if ($wasInstalled) { "Installed" } else { "AlreadyPresent" }
+                    if ($wasInstalled) { [DellCommandStatus]::Installed } else { [DellCommandStatus]::Present }
                 } else {
-                    "Failed"
+                    [DellCommandStatus]::Failed
                 }
 
-                $results += [pscustomobject]@{
-                    ComputerName = $env:COMPUTERNAME
-                    Exists       = [bool]$foundPath
-                    Path         = $foundPath
-                    Status       = $status
-                }
+                $results += [DellCommandResult]::new(
+                        $session.ComputerName,
+                        [bool]$foundPath,
+                        $foundPath,
+                        $status
+                )
             }
         }
     }
-
     end {
         return $results
     }

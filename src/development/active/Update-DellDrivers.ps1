@@ -9,23 +9,9 @@ Update-DellDrivers{
         [string]$DownloadUrl = "https://dl.dell.com/FOLDER13309338M/2/Dell-Command-Update-Application_Y5VJV_WIN64_5.5.0_A00_01.EXE",
         [switch]$UninstallWhenDone,
         [switch]$RebootWhenFinished,
-        [switch]$ApplyUpdates,
         [switch]$Intune,
         [switch]$ClassicCore
     )
-    $status = Get-DellCommand -ComputerName $ComputerName -Credential $Credential
-
-    $toInstall = @($status.Keys | Where-Object { -not $status[$_] })
-    if ($toInstall.Count -eq 0) {
-        Write-Verbose "All systems already have Dell Command | Update."
-        return
-    }
-
-    Write-Verbose "Installing Dell Command | Update on: $($toInstall -join ', ')"
-    $installResults = Install-DellCommand -ComputerName $toInstall -Credential $Credential
-
-    Write-Output $installResults
-
     # Map category to DCU CLI argument
     $categoryMap = @{
         "BIOS"        = "bios"
@@ -38,6 +24,8 @@ Update-DellDrivers{
         "Security"    = "security"
         "Other"       = "other"
     }
+    Get-DellUpdateStatus -ComputerName $_.ComputerName -Credential $Credential -Category $Category -ApplyUpdates -RebootWhenFinished:$RebootWhenFinished -UninstallWhenDone:$UninstallWhenDone -Intune:$Intune -ClassicCore:$ClassicCore
+
 
     $dcuExe = "C:\Program Files (x86)\Dell\CommandUpdate\dcu-cli.exe"
 

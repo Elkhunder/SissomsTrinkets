@@ -1462,6 +1462,21 @@ function Get-WindowsVersion{
     )
 
     begin{
+        if ($IsMacOS -and (-not $ProxyHost -or -not $UserName -or -not $KeyFilePath)) {
+            $homeDir = $HOME ?? [Environment]::GetFolderPath("UserProfile")
+            $sshDir = Join-Path $homeDir ".ssh"
+            $configPath = Join-Path $sshDir "proxysettings.json"
+        
+            if (Test-Path $configPath) {
+                $proxyConfig = Get-Content $configPath | ConvertFrom-Json
+                $ProxyHost    = $ProxyHost    ?? $proxyConfig.ProxyHost
+                $UserName     = $UserName     ?? $proxyConfig.UserName
+                $KeyFilePath  = $KeyFilePath  ?? $proxyConfig.KeyFilePath
+                $Port         = $Port         ?? $proxyConfig.Port
+                Write-Host "ℹ️ Loaded proxy settings from $configPath"
+            }
+        }
+
         if ($ComputerName -and $FilePath){
             throw "ComputerName can not be used with FilePath"
         }
@@ -2746,4 +2761,1256 @@ function Watch-DeviceStatus {
         }
     }
 }
+function Confirm-DellCommandExists {
+    <#
+    .SYNOPSIS
+        Ensures that the Dell Command | Update tool is installed on the target computer(s).
+    .DESCRIPTION
+        Checks if the Dell Command | Update tool is installed on the specified computer(s).
+        If it is not installed, downloads and installs the tool.
+    .PARAMETER ComputerName
+        The name of the target computer(s). Accepts pipeline input.
+    .PARAMETER Credential
+        Credentials to use for connecting to the target computer.
+    .PARAMETER PSSession
+        One or more existing PowerShell sessions. Accepts pipeline input.
+    .PARAMETER DownloadUrl
+        The URL to download the Dell Command | Update installer if missing.
+    .OUTPUTS
+        DellCommandResult
+        Returns objects with the following properties:
+        - ComputerName: The name of the computer where Dell Command was checked/installed
+        - Exists: Boolean indicating whether Dell Command | Update is present
+        - Path: Full path to the dcu-cli.exe executable if found
+        - Status: Installation status (Present, Installed, or Failed)
+    .EXAMPLE
+        Ensure-DellCommandExists -ComputerName "RemotePC" -Credential (Get-Credential)
+    .EXAMPLE
+        "PC01","PC02" | Ensure-DellCommandExists
+    .EXAMPLE
+        Get-PSSession | Ensure-DellCommandExists
+    #>
+    [CmdletBinding(SupportsShouldProcess, DefaultParameterSetName = 'Local')]
+    [OutputType([DellCommandResult])]
+    param(
+
+        [Parameter(ParameterSetName = "ComputerName", ValueFromPipeline, ValueFromPipelineByPropertyName)]
+        [Alias("CN","Name")]
+        [string[]]$ComputerName,
+
+        [Parameter(ParameterSetName = "ComputerName")]
+        [pscredential]$Credential,
+
+        [Parameter(ParameterSetName = "PSSession", ValueFromPipeline)]
+        [System.Management.Automation.Runspaces.PSSession[]]$PSSession,
+
+        [string]$DellCommandVersion = "5.5.0",
+        [string]$DownloadUrl = "https://dl.dell.com/FOLDER13309338M/2/Dell-Command-Update-Application_Y5VJV_WIN64_5.5.0_A00_01.EXE"
+    )
+
+    begin {
+        $dellCommandPaths = @(
+            "C:\Program Files (x86)\Dell\CommandUpdate\dcu-cli.exe",
+            "C:\Program Files\Dell\CommandUpdate\dcu-cli.exe"
+        )
+
+        $checkScript = {
+            param($paths)
+            foreach ($path in $paths) {
+                if (Test-Path $path) { return $path }
+            }
+            return $null
+        }
+
+        $installScript = {
+            param($url, $paths, $version)
+            try {
+                $installerPath = "C:\Temp\DellCommandInstaller_$version.exe"
+                Invoke-WebRequest -Uri $url -OutFile $installerPath -UseBasicParsing -ErrorAction Stop -Headers @{
+                    "User-Agent" = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0 Safari/537.36"
+                }
+                Start-Process -FilePath $installerPath -ArgumentList "/s" -Wait
+            } catch {
+                Write-Warning "Download or installation failed: $_"
+            } finally {
+                if (Test-Path $installerPath) { Remove-Item -Path $installerPath -Force }
+            }
+
+            foreach ($path in $paths) {
+                if (Test-Path $path) { return $path }
+            }
+            return $null
+        }
+
+        $results = @()
+    }
+
+    process {
+        switch ($PSCmdlet.ParameterSetName) {
+            "ComputerName" {
+                foreach ($computer in $ComputerName) {
+                    $foundPath   = Invoke-Command -ComputerName $computer -Credential $Credential `
+                                    -ScriptBlock $checkScript -ArgumentList $dellCommandPaths -ErrorAction SilentlyContinue
+                    $wasInstalled = $false
+
+                    if (-not $foundPath -and $PSCmdlet.ShouldProcess($computer, "Install Dell Command | Update")) {
+                        $wasInstalled = $true
+                        Write-Verbose "Dell Command | Update not found on $computer. Installing..."
+                        $foundPath = Invoke-Command -ComputerName $computer -Credential $Credential `
+                                        -ScriptBlock $installScript -ArgumentList $DownloadUrl,$dellCommandPaths,$DellCommandVersion -ErrorAction SilentlyContinue
+                    }
+
+                    $status = if ($foundPath) {
+                        if ($wasInstalled) { [DellCommandStatus]::Installed } else { [DellCommandStatus]::Present }
+                    } else {
+                        [DellCommandStatus]::Failed
+                    }
+
+                    $results += [DellCommandResult]::new(
+                        $computer,
+                        [bool]$foundPath,
+                        $foundPath,
+                        $status
+                    )
+                }
+            }
+
+            "PSSession" {
+                foreach ($session in $PSSession) {
+                    $foundPath   = Invoke-Command -Session $session `
+                                    -ScriptBlock $checkScript -ArgumentList $dellCommandPaths -ErrorAction SilentlyContinue
+                    $wasInstalled = $false
+
+                    if (-not $foundPath -and $PSCmdlet.ShouldProcess($session.ComputerName, "Install Dell Command | Update")) {
+                        $wasInstalled = $true
+                        Write-Verbose "Dell Command | Update not found on $($session.ComputerName). Installing..."
+                        $foundPath = Invoke-Command -Session $session `
+                                        -ScriptBlock $installScript -ArgumentList $DownloadUrl,$dellCommandPaths,$DellCommandVersion -ErrorAction SilentlyContinue
+                    }
+
+                    $status = if ($foundPath) {
+                        if ($wasInstalled) { [DellCommandStatus]::Installed } else { [DellCommandStatus]::Present }
+                    } else {
+                        [DellCommandStatus]::Failed
+                    }
+
+                    $results += [DellCommandResult]::new(
+                        $session.ComputerName,
+                        [bool]$foundPath,
+                        $foundPath,
+                        $status
+                    )
+                }
+            }
+
+            Default {
+                $foundPath   = & $checkScript $dellCommandPaths
+                $wasInstalled = $false
+
+                if (-not $foundPath -and $PSCmdlet.ShouldProcess($env:COMPUTERNAME, "Install Dell Command | Update")) {
+                    $wasInstalled = $true
+                    Write-Verbose "Dell Command | Update not found on $env:COMPUTERNAME. Installing..."
+                    $foundPath = & $installScript $DownloadUrl $dellCommandPaths $DellCommandVersion
+                }
+
+                $status = if ($foundPath) {
+                    if ($wasInstalled) { [DellCommandStatus]::Installed } else { [DellCommandStatus]::Present }
+                } else {
+                    [DellCommandStatus]::Failed
+                }
+
+                $results += [DellCommandResult]::new(
+                        $session.ComputerName,
+                        [bool]$foundPath,
+                        $foundPath,
+                        $status
+                )
+            }
+        }
+    }
+    end {
+        return $results
+    }
+}
+
+# https://blog.ironmansoftware.com/tui-powershell/#:~:text=Terminal.Gui%20is%20a%20.NET%20library%20for%20creating%20robust%20TUIs.%20It%E2%80%99s#:~:text=Terminal.Gui%20is%20a%20.NET%20library%20for%20creating%20robust%20TUIs.%20It%E2%80%99s
+
+
+
+<# SYNOPSIS
+    Initializes and sets up a terminal graphical user interface (GUI) window using the Microsoft.PowerShell.ConsoleGuiTools module.
+
+SYNTAX
+    Initialize-TerminalGuiWindow
+
+DESCRIPTION
+    The Initialize-TerminalGuiWindow function checks for the presence of the Microsoft.PowerShell.ConsoleGuiTools module, installs or updates it if necessary,
+    and initializes a terminal GUI application. It returns an instance of a Terminal.Gui.Window.
+
+    This function is designed to simplify the process of creating terminal-based graphical interfaces within PowerShell scripts.
+
+EXAMPLES
+    Example 1:
+    ---------
+    PS C:\> Initialize-TerminalGuiWindow
+    Initializes the terminal GUI application and returns a Terminal.Gui.Window object.
+
+NOTES
+    Author: Jonathon Sissom
+    Date: 2024/09/03
+
+BEGIN BLOCK
+    1. Declare variables for error handling and module versioning.
+    2. Check if Microsoft.PowerShell.ConsoleGuiTools module is available.
+    3. Install or update the module if necessary.
+    4. Add the Terminal.Gui.dll assembly to the session.
+
+PROCESS BLOCK
+    1. Initialize the Terminal GUI application.
+    2. Return a new instance of Terminal.Gui.Window.
+#>
+function Initialize-TerminalGuiApp {
+    [CmdletBinding()]
+    param()
+
+    begin {
+        $module = Get-Module -Name Microsoft.PowerShell.ConsoleGuiTools -ErrorAction SilentlyContinue
+        [version]$latestVersion = $(Find-Module -Name Microsoft.PowerShell.ConsoleGuiTools).Version
+        [version]$installedVersion = $module.Version
+
+        if ($null -eq $module){
+            Install-Module Microsoft.PowerShell.ConsoleGuiTools
+            Import-Module -Name Microsoft.PowerShell.ConsoleGuiTools
+        } elseif ($installedVersion -lt $latestVersion){
+            Update-Module -Name Microsoft.PowerShell.ConsoleGuiTools
+            Import-Module -Name Microsoft.PowerShell.ConsoleGuiTools -Force
+        }
+
+        $module = (Get-Module -Name Microsoft.PowerShell.ConsoleGuiTools -ListAvailable).ModuleBase
+        Add-Type -Path (Join-Path $module Terminal.Gui.dll)
+    }
+    
+    process {
+        [Terminal.Gui.Application]::Init()
+    }
+}
+
+function Initialize-TerminalGuiWindow{
+    return [Terminal.Gui.Window]::new()
+}
+
+function Set-GuiWindowTitle {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]
+        [string]$Title,
+
+        [Parameter(Mandatory)]
+        [Terminal.Gui.Window]$GuiWindow
+    )
+    $GuiWindow.Title = $Title
+}
+
+
+function Set-GuiWindowItemList {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory)]
+        [System.Collections.Generic.List[string]]
+        $ListItems,
+
+        # Gui Window
+        [Parameter(Mandatory, ValueFromPipeline)]
+        [Terminal.Gui.Window]
+        $GuiWindow
+    )
+    $ListView = [Terminal.Gui.ListView]::new()
+    $ListView.SetSource($ListItems)
+    $ListView.Width = [Terminal.Gui.Dim]::Fill()
+    $ListView.Height = [Terminal.Gui.Dim]::Fill()
+    $ListView.add_SelectedItemChanged({
+        param($sender, $e)
+        Write-Host "Selected item changed to: $($e.ItemIndex)"
+    })
+    $GuiWindow.Add($ListView)
+}
+
+function Show-TerminalGuiWindow {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true)]
+        [Terminal.Gui.Window]$GuiWindow
+    )
+
+    # Adding the window to the application
+    [Terminal.Gui.Application]::Top.Add($GuiWindow)
+    
+    # Running the application
+    [Terminal.Gui.Application]::Run()
+}
+function Get-DellCommand {
+    [CmdletBinding(DefaultParameterSetName = 'Local')]
+    param(
+        [Parameter(Mandatory, ParameterSetName = "ComputerName")]
+        [string[]]$ComputerName,
+        
+        [Parameter(Mandatory, ParameterSetName = "ComputerName")]
+        [pscredential]$Credential,
+
+        [Parameter(Mandatory, ParameterSetName = "PSSession")]
+        [System.Management.Automation.Runspaces.PSSession[]]$PSSession
+    )
+
+    $dellCommandPaths = @(
+        "C:\Program Files (x86)\Dell\CommandUpdate\dcu-cli.exe",
+        "C:\Program Files\Dell\CommandUpdate\dcu-cli.exe"
+    )
+
+    $checkScript = {
+        param($paths)
+        foreach ($path in $paths) {
+            if (Test-Path $path) { return $path }
+        }
+        return $null
+    }
+
+    $results = @()
+
+    switch ($PSCmdlet.ParameterSetName) {
+        "ComputerName" {
+            foreach ($computer in $ComputerName) {
+                $foundPath = Invoke-Command -ComputerName $computer -Credential $Credential `
+                    -ScriptBlock $checkScript -ArgumentList $dellCommandPaths -ErrorAction SilentlyContinue
+                $results += [pscustomobject]@{
+                    ComputerName = $computer
+                    Exists       = [bool]$foundPath
+                    Path         = $foundPath
+                }
+            }
+        }
+        "PSSession" {
+            foreach ($session in $PSSession) {
+                $foundPath = Invoke-Command -Session $session `
+                    -ScriptBlock $checkScript -ArgumentList $dellCommandPaths -ErrorAction SilentlyContinue
+                $results += [pscustomobject]@{
+                    ComputerName = $session.ComputerName
+                    Exists       = [bool]$foundPath
+                    Path         = $foundPath
+                }
+            }
+        }
+        Default {
+            $foundPath = & $checkScript $dellCommandPaths
+            $results += [pscustomobject]@{
+                ComputerName = "Localhost"
+                Exists       = [bool]$foundPath
+                Path         = $foundPath
+            }
+        }
+    }
+
+    return $results
+}
+
+function Install-DellCommand {
+    [CmdletBinding()]
+    param (
+        [string[]]$ComputerName,
+        [pscredential]$Credential,
+        
+        [string]$InstallerName = "Dell-Command-Update-Application_Y5VJV_WIN64_5.5.0_A00_01.EXE",
+        [string]$InstallerUrl = "https://dl.dell.com/FOLDER13309338M/2/$InstallerName",
+        [string]$TempDir = "C:\Temp"
+    )
+
+    $results = @{}  # Hashtable to store per-machine results
+
+    $scriptBlock = {
+        param($InstallerUrl, $InstallerName, $TempDir)
+
+        $InstallerPath = Join-Path $TempDir $InstallerName
+
+        try {
+            if (-not (Test-Path $TempDir)) {
+                New-Item -ItemType Directory -Path $TempDir -Force | Out-Null
+            }
+
+            Invoke-WebRequest -Uri $InstallerUrl -OutFile $InstallerPath -Headers @{
+                "User-Agent" = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+            } -UseBasicParsing
+
+            if (-not (Test-Path $InstallerPath) -or ((Get-Item $InstallerPath).Length -lt 1MB)) {
+                return $false
+            }
+
+            Start-Process -FilePath $InstallerPath -ArgumentList "/s" -Wait
+
+            $exePaths = @(
+                "C:\Program Files\Dell\CommandUpdate\dcu-cli.exe",
+                "C:\Program Files (x86)\Dell\CommandUpdate\dcu-cli.exe"
+            )
+
+            $installed = $false
+            foreach ($exe in $exePaths) {
+                if (Test-Path $exe) { $installed = $true; break }
+            }
+
+            try {
+                Remove-Item $InstallerPath -Force -ErrorAction Stop
+            } catch { }
+
+            return $installed
+        }
+        catch {
+            return $false
+        }
+    }
+
+    if ($ComputerName) {
+        foreach ($computer in $ComputerName) {
+            try {
+                $result = Invoke-Command -ComputerName $computer -Credential $Credential `
+                    -ScriptBlock $scriptBlock `
+                    -ArgumentList $InstallerUrl, $InstallerName, $TempDir `
+                    -ErrorAction Stop
+                $results[$computer] = [bool]$result
+            }
+            catch {
+                $results[$computer] = $false
+            }
+        }
+    }
+    else {
+        try {
+            $localResult = & $scriptBlock $InstallerUrl $InstallerName $TempDir
+            $results["localhost"] = [bool]$localResult
+        }
+        catch {
+            $results["localhost"] = $false
+        }
+    }
+    
+    return $results
+}
+
+# # This file was generated at 9/3/2024 11:56:11 PM
+# # Manually editing this file may result in issues with the designer
+# $Window = [Terminal.Gui.Window]::new()
+# $Window.Id = 'Window'
+# $Window.Title = 'Installed Software'
+# $Window.X = 0
+# $Window.Y = 0
+# $Window.Width = [Terminal.Gui.Dim]::Fill()
+# $Window.Height = [Terminal.Gui.Dim]::Fill()
+# $Label = [Terminal.Gui.Label]::new()
+# $Label.Width = 30
+# $Label.Height = 5
+# $Cancel_Button = [Terminal.Gui.Button]::new()
+# $Cancel_Button.Text = 'Cancel'
+# $Cancel_Button.IsDefault = $False
+# $Cancel_Button.HotKey = 'C'
+# $Cancel_Button.AutoSize = $False
+# $Cancel_Button.Shortcut = 'Null'
+# $Cancel_Button.TabIndex = 1
+# $Cancel_Button.TabStop = $False
+# $Cancel_Button.CanFocus = $True
+# $Cancel_Button.Id = 'Cancel_Button'
+# $Cancel_Button.WantMousePositionReports = $False
+# $Cancel_Button.WantContinuousButtonPressed = $False
+# $Cancel_Button.LayoutStyle = 'Computed'
+# $Cancel_Button.X = [Terminal.Gui.Pos]::At(50)
+# $Cancel_Button.Y = [Terminal.Gui.Pos]::At(25)
+# $Cancel_Button.Width = [Terminal.Gui.Dim]::Sized(10)
+# $Cancel_Button.Height = [Terminal.Gui.Dim]::Sized(1)
+# $Cancel_Button.TextAlignment = 'Centered'
+# $Cancel_Button.VerticalTextAlignment = 'Top'
+# $Cancel_Button.TextDirection = 'LeftRight_TopBottom'
+# $Cancel_Button.IsInitialized = $True
+# $Cancel_Button.Enabled = $True
+# $Cancel_Button.Visible = $True
+# $Window.Add($Cancel_Button)
+# $OK_Button = [Terminal.Gui.Button]::new()
+# $OK_Button.Text = 'Ok'
+# $OK_Button.IsDefault = $False
+# $OK_Button.HotKey = 'O'
+# $OK_Button.AutoSize = $False
+# $OK_Button.Shortcut = 'Null'
+# $OK_Button.TabIndex = 2
+# $OK_Button.TabStop = $True
+# $OK_Button.CanFocus = $True
+# $OK_Button.Id = 'OK_Button'
+# $OK_Button.WantMousePositionReports = $False
+# $OK_Button.WantContinuousButtonPressed = $False
+# $OK_Button.LayoutStyle = 'Computed'
+# $OK_Button.X = [Terminal.Gui.Pos]::At(42)
+# $OK_Button.Y = [Terminal.Gui.Pos]::At(25)
+# $OK_Button.Width = [Terminal.Gui.Dim]::Sized(8)
+# $OK_Button.Height = [Terminal.Gui.Dim]::Sized(1)
+# $OK_Button.TextAlignment = 'Centered'
+# $OK_Button.VerticalTextAlignment = 'Top'
+# $OK_Button.TextDirection = 'LeftRight_TopBottom'
+# $OK_Button.IsInitialized = $True
+# $OK_Button.Enabled = $True
+# $OK_Button.Visible = $True
+# $Window.Add($OK_Button)
+# $ListView = [Terminal.Gui.ListView]::new()
+# $ListView.AllowsMarking = $False
+# $ListView.AllowsMultipleSelection = $False
+# $ListView.TopItem = 0
+# $ListView.LeftItem = 0
+# $ListView.SelectedItem = 0
+# $ListView.HotKey = 'Null'
+# $ListView.Shortcut = 'Null'
+# $ListView.TabIndex = 3
+# $ListView.TabStop = $True
+# $ListView.CanFocus = $True
+# $ListView.Id = 'ListView'
+# $ListView.WantMousePositionReports = $False
+# $ListView.WantContinuousButtonPressed = $False
+# $ListView.LayoutStyle = 'Computed'
+# $ListView.X = [Terminal.Gui.Pos]::At(0)
+# $ListView.Y = [Terminal.Gui.Pos]::At(0)
+# $ListView.Width = [Terminal.Gui.Dim]::Fill()
+# $ListView.Height = [Terminal.Gui.Dim]::Fill()
+# $ListView.Text = ''
+# $ListView.AutoSize = $False
+# $ListView.TextAlignment = 'Left'
+# $ListView.VerticalTextAlignment = 'Top'
+# $ListView.TextDirection = 'LeftRight_TopBottom'
+# $ListView.IsInitialized = $True
+# $ListView.Enabled = $True
+# $ListView.Visible = $True
+# $ListView.SetSource(@(
+#     'Microsoft 365 Apps for enterprise - en-us',
+#     'Microsoft OneDrive',
+#     'CrowdStrike Sensor Platform',
+#     '64 Bit HP CIO Components Installer',
+#     'Microsoft Visual C++ 2010  x64 Redistributable - 10.0.40219',
+#     'Configuration Manager Client',
+#     'Zoom (64-bit)',
+#     'Microsoft Visual C++ 2012 x64 Additional Runtime - 11.0.61030',
+#     'Microsoft Visual C++ 2022 X64 Additional Runtime - 14.32.31326',
+#     'CyberArk Endpoint Privilege Manager Agent',
+#     'Synergy (64-bit)',
+#     'CrowdStrike Firmware Analysis',
+#     'Google Chrome',
+#     'Office 16 Click-to-Run Licensing Component',
+#     'Office 16 Click-to-Run Extensibility Component',
+#     'Microsoft Visual C++ 2013 x64 Additional Runtime - 12.0.21005',
+#     'CrowdStrike Device Control',
+#     'Microsoft Visual C++ 2013 x64 Minimum Runtime - 12.0.21005',
+#     'MDOP MBAM',
+#     '1E Client x64',
+#     'PowerShell 7-x64',
+#     'Microsoft Visual C++ 2022 X64 Minimum Runtime - 14.32.31326',
+#     'Windows Admin Center',
+#     'Microsoft Policy Platform',
+#     'Microsoft Visual C++ 2012 x64 Minimum Runtime - 11.0.61030',
+#     'Adobe CCDA'
+#     ))
+# $ListView.add_SelectedItemChanged({$Window.Title = $ListView.SelectedItem})
+
+# $Window.Add($Label)
+# $Window.Add($ListView)
+# $Window
+
+function Invoke-LocalCimQuery{
+    param (
+        [Parameter(Mandatory, ParameterSetName = 'Local')]
+        [Parameter(Mandatory, ParameterSetName = 'Remote')]
+        [String[]]
+        $ClassName,
+
+        # Could be better to pass in a single computername 
+        [Parameter(Mandatory, ParameterSetName = 'Remote')]
+        [String[]]
+        $ComputerName,
+
+        [Parameter(Mandatory, ParameterSetName = 'Remote')]
+        [pscredential]
+        $Credential,
+
+        [Parameter(Mandatory, ParameterSetName = 'Local')]
+        [switch]
+        $Local
+    )
+    begin{
+        $CimInstances = @()
+    }
+    
+    process{
+        if ($Local){
+            foreach ($Class in $ClassName){
+                $CimInstances += Get-CimInstance -ClassName $Class
+            }
+        } else {
+            foreach ($Computer in $ComputerName){
+                $CimSession = New-CimSession -ComputerName $Computer -Credential $Credential
+                $DeviceCimInstances = @()
+                foreach ($Class in $ClassName){
+                    $DeviceCimInstances += Get-CimInstance -CimSession $CimSession -ClassName $Class
+                }
+                $CimInstances += $DeviceCimInstances
+                Remove-CimSession -CimSession $CimSession
+            }
+        }
+    }
+
+    end{
+        return $CimInstances
+    }
+}
+function Invoke-LocalSystemProfilerQuery{
+    [Alias('Invoke-LocalSPQuery')]
+    # Man Page - https://ss64.com/mac/system_profiler.html
+    <#
+    system_profiler
+    Report system hardware and software configuration.
+    Syntax
+        system_profiler [-usage]
+
+        system_profiler [-listDataTypes]
+
+        system_profiler [-xml] dataType1 ... dataTypeN
+
+        system_profiler [-xml] [-detailLevel level]
+
+    Key:
+    -xml                Generate a report in XML format.  If the XML report
+                        is redirected to a file with a ".spx" suffix that
+                        file can be opened with System Profiler.app.
+
+    -listDataTypes      List the available datatypes.
+
+    -detailLevel level  The level of detail for the report:
+
+                            mini       report with no personal information
+                            basic      basic hardware and network information
+                            full       all available information
+
+    -usage              Print usage info and examples.
+    system_profiler is a replacement for /usr/sbin/AppleSystemProfiler.
+    Examples
+    Generate a text report with the standard detail level:
+    $ system_profiler
+    Generate a report of all 32 bit software and save to a text file on the desktop:
+    $ system_profiler SPApplicationsDataType | grep -B 6 -A 2 "(Intel): No" > ~/Desktop/non64bit.txt
+    Generate a short report containing no personal information:
+    $ system_profiler -detailLevel mini
+    Show a list of the available data types:
+    $ system_profiler -listDataTypes
+    Generate a text report containing only software and network data:
+    $ system_profiler SPSoftwareDataType SPNetworkDataType
+    Create an XML file which can be opened by System Profiler.app:
+    $ system_profiler -xml > MyReport.spx
+    #>
+    [CmdletBinding()]
+    param (
+        # The data type to retrieve
+        [Parameter(ParameterSetName = 'Json')]
+        [Parameter(ParameterSetName = 'Xml')]
+        [ValidateSet(
+            'SPParallelATADataType',
+            'SPUniversalAccessDataType',
+            'SPSecureElementDataType',
+            'SPApplicationsDataType',
+            'SPAudioDataType',
+            'SPBluetoothDataType',
+            'SPCameraDataType',
+            'SPCardReaderDataType',
+            'SPiBridgeDataType',
+            'SPDeveloperToolsDataType',
+            'SPDiagnosticsDataType',
+            'SPDisabledSoftwareDataType',
+            'SPDiscBurningDataType',
+            'SPEthernetDataType',
+            'SPExtensionsDataType',
+            'SPFibreChannelDataType',
+            'SPFireWireDataType',
+            'SPFirewallDataType',
+            'SPFontsDataType',
+            'SPFrameworksDataType',
+            'SPDisplaysDataType',
+            'SPHardwareDataType',
+            'SPInstallHistoryDataType',
+            'SPInternationalDataType',
+            'SPLegacySoftwareDataType',
+            'SPNetworkLocationDataType',
+            'SPLogsDataType',
+            'SPManagedClientDataType',
+            'SPMemoryDataType',
+            'SPNVMeDataType',
+            'SPNetworkDataType',
+            'SPPCIDataType',
+            'SPParallelSCSIDataType',
+            'SPPowerDataType',
+            'SPPrefPaneDataType',
+            'SPPrintersSoftwareDataType',
+            'SPPrintersDataType',
+            'SPConfigurationProfileDataType',
+            'SPRawCameraDataType',
+            'SPSASDataType',
+            'SPSerialATADataType',
+            'SPSPIDataType',
+            'SPSmartCardsDataType',
+            'SPSoftwareDataType',
+            'SPStartupItemDataType',
+            'SPStorageDataType',
+            'SPSyncServicesDataType',
+            'SPThunderboltDataType',
+            'SPUSBDataType',
+            'SPNetworkVolumeDataType',
+            'SPWWANDataType',
+            'SPAirPortDataType'
+        )]
+        [string]
+        $DataType,
+
+        # The level of detail for the report
+        [Parameter(ParameterSetName = 'Json')]
+        [Parameter(ParameterSetName = 'Xml')]
+        [ValidateSet(
+            'Mini',
+            'Basic',
+            'Full'
+        )]
+        [string]
+        $DetailLevel,
+
+        # Lists the available data types
+        [Parameter()]
+        [switch]
+        $ListDataTypes,
+
+        # Prints usage info and examples
+        [Parameter()]
+        [switch]
+        $Usage,
+
+        # Generate a report in XML format
+        [Parameter(ParameterSetName = 'Xml')]
+        [switch]
+        $Xml,
+
+        [Parameter(ParameterSetName = 'Json')]
+        [switch]
+        $Json,
+
+        [Parameter(ParameterSetName = 'Json')]
+        [switch]
+        $AsHashTable
+    )
+    if ($IsWindows){
+        throw "This function is only supported on MacOS"
+    } elseif ($DataType -and -not $DetailLevel -and -not $Xml -and -not $Json){
+        return system_profiler $DataType
+    } elseif ($DataType -and $DetailLevel -and -not $Xml -and -not $Json){
+        return system_profiler $DataType -DetailLevel $DetailLevel
+    } elseif (-not $DataType -and -not $DetailLevel -and $Xml -and -not $Json){
+        return (system_profiler -Xml)
+    } elseif ($DataType -and -not $DetailLevel -and $Xml -and -not $Json){
+        return (system_profiler $DataType -Xml) 
+    } elseif (-not $DataType -and $DetailLevel -and $Xml -and -not $Json){
+        return (system_profiler -DetailLevel $DetailLevel -Xml)
+    } elseif ($DataType -and $DetailLevel -and $Xml -and -not $Json){
+        return (system_profiler $DataType -DetailLevel $DetailLevel -Xml)
+    } elseif (-not $DataType -and -not $DetailLevel -and -not $Xml -and $Json){
+        return (system_profiler -Json | ConvertFrom-Json -AsHashtable:$AsHashTable).$DataType
+    } elseif (-not $DataType -and $DetailLevel -and -not $Xml -and $Json){
+        return (system_profiler -DetailLevel $DetailLevel -Json | ConvertFrom-Json -AsHashtable:$AsHashTable).$DataType
+    } elseif ($DataType -and -not $DetailLevel -and -not $Xml -and $Json){
+        return (system_profiler $DataType -Json | ConvertFrom-Json -AsHashtable:$AsHashTable).$DataType
+    } elseif ($DataType -and $DetailLevel -and -not $Xml -and $Json){
+        return (system_profiler $DataType -DetailLevel $DetailLevel -Json | ConvertFrom-Json -AsHashtable:$AsHashTable).$DataType
+    } elseif ($ListDataTypes){
+        return system_profiler -ListDataTypes
+    } elseif ($Usage){
+        return system_profiler -Usage
+    }  else {
+        return system_profiler
+    }
+}
+# Function to check if the user is a built-in Windows account
+function IsBuiltInAccount {
+    param ($accountName)
+
+    # Define built-in Windows accounts to filter out
+    $builtInAccounts = @('SYSTEM', 'LOCAL SERVICE', 'NETWORK SERVICE')
+
+    # Check if the account matches a built-in account or pattern like DWM-*, UMFD-*
+    return ($builtInAccounts -contains $accountName -or $accountName -match '^DWM-' -or $accountName -match '^UMFD-')
+}
+
+function New-CustomInput{
+    <#
+      .SYNOPSIS
+      Creates Input Text Box
+  
+      .DESCRIPTION
+      -Creates input text box for getting user input
+      .PARAMETER LabelText
+      The text box label
+      .PARAMETER AsSecureString
+      Text as a secure string
+      .PARAMETER AsEncryptedString
+      Text as an encrypted string
+      .NOTES
+      Function Returns
+      -Default
+        Inputed Text
+      -AsSecureString
+        Returns inputed text as secure string
+      -AsEncryptedString
+        Returns encryption key and inputed text encrpted string file paths
+    #>
+    [cmdletbinding(DefaultParameterSetName="plain")]
+    [OutputType([system.string],ParameterSetName='plain')]
+    [OutputType([system.security.securestring],ParameterSetName='secure')]
+  
+    Param(
+      [Parameter(ParameterSetName = "secure")]
+      [Parameter(ParameterSetName = "encrypted")]
+      [Parameter(HelpMessage = "Enter the title for the input box.",
+      ParameterSetName="plain")]
+  
+      [ValidateNotNullOrEmpty()]
+      [string[]]$LabelText = "Input Text",
+  
+      [Parameter(HelpMessage = "Use to mask the entry and return a secure string.",
+      ParameterSetName = "secure")]
+      [switch]$AsSecureString,
+  
+      [Parameter(HelpMessage = "Use to mask the entry and return an encrypted string.",
+      ParameterSetName = "encrypted")]
+      [switch]$AsEncryptedString
+    )
+    Add-Type -AssemblyName System.Windows.Forms
+    Add-Type -AssemblyName System.Drawing
+  
+    $form = New-Object System.Windows.Forms.Form
+    $form.Text = 'Data Entry Form'
+    $form.Size = New-Object System.Drawing.Size(300,200)
+    $form.StartPosition = 'CenterScreen'
+  
+    $okButton = New-Object System.Windows.Forms.Button
+    $okButton.Location = New-Object System.Drawing.Point(75,120)
+    $okButton.Size = New-Object System.Drawing.Size(75,23)
+    $okButton.Text = 'OK'
+    $okButton.DialogResult = [System.Windows.Forms.DialogResult]::OK
+    $form.AcceptButton = $okButton
+    $form.Controls.Add($okButton)
+  
+    $cancelButton = New-Object System.Windows.Forms.Button
+    $cancelButton.Location = New-Object System.Drawing.Point(150,120)
+    $cancelButton.Size = New-Object System.Drawing.Size(75,23)
+    $cancelButton.Text = 'Cancel'
+    $cancelButton.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+    $form.CancelButton = $cancelButton
+    $form.Controls.Add($cancelButton)
+  
+    $label = New-Object System.Windows.Forms.Label
+    $label.Location = New-Object System.Drawing.Point(10,20)
+    $label.Size = New-Object System.Drawing.Size(280,20)
+    $label.Text = $LabelText
+    $form.Controls.Add($label)
+  
+    if ($AsSecureString -or $AsEncryptedString){
+      $textBox = New-Object System.Windows.Forms.MaskedTextBox
+      $textBox.PasswordChar = '*'
+    } else {
+      $textBox = New-Object System.Windows.Forms.TextBox
+    }
+    $textBox.Location = New-Object System.Drawing.Point(10,40)
+    $textBox.Size = New-Object System.Drawing.Size(260,20)
+    $form.Controls.Add($textBox)
+  
+    $form.Topmost = $true
+  
+    $form.Add_Shown({$textBox.Select()})
+    $result = $form.ShowDialog()
+    $text = $textBox.Text
+    if($result -eq [System.Windows.Forms.DialogResult]::Cancel){
+      Write-Host "Cancel was selected, exiting program."
+      Start-Sleep -Seconds 3
+      exit
+    }
+  
+    if($result -eq [System.Windows.Forms.DialogResult]::OK -and $AsSecureString){
+      return ConvertTo-SecureString $text -AsPlainText -Force
+    }
+    if($result -eq [System.Windows.Forms.DialogResult]::OK -and $AsEncryptedString){
+      # New-EncryptionKey -Path "~\encryption.key"
+      $EncryptionKey = New-EncryptionKey
+      $EncryptedString = ConvertTo-SecureString $text -AsPlainText -Force |
+        ConvertFrom-SecureString -Key $EncryptionKey
+          # | Out-File -FilePath "~\encryptedstring.encrypted"
+      # $EncryptionKey = "~\encryption.key"
+      # $EncryptedString = "~\encryptedstring.encrypted"
+      Return @{
+        EncryptionKey = $EncryptionKey;
+        EncryptedString = $EncryptedString
+      }
+    }
+    return $text
+  }
+function New-ElevatedPrompt{
+    <#
+      .SYNOPSIS
+      Elevates Script in New Powershell Session
+  
+      .DESCRIPTION
+      -Checks to see if script is already running in an elevated session
+      -Launches new elevated powershell session and calls script
+      .PARAMETER Path
+      The path of the script file
+  
+      .PARAMETER Credentials
+      Provided credentials, not currently utilizing
+    #>
+    param(
+      [Parameter(HelpMessage = "The Path For the Current Script File")]
+      [string]$ScriptPath,
+      [Parameter(HelpMessage = "The Path of Functions to import")]
+      [string]$FunctionPath
+    )
+    #Check if current powershell session is running elevated
+    if (-Not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] 'Administrator')) {
+    Write-Host "Prompt is not Elevated, Elevating Prompt.  Enter your secondary credentials in the UAC prompt"
+    if ([int](Get-CimInstance -Class Win32_OperatingSystem | Select-Object -ExpandProperty BuildNumber) -ge 6000) {
+      $ScriptBlock = {
+        <#
+        Gets username of the currently logged on user not the one that is running the script.
+        This is done to return the primary level-2 account of the currently logged in user,
+        as at this point the script will be running with their secondary level-2 account
+        #>
+        $UserName = (Get-CimInstance -ClassName Win32_ComputerSystem | Select-Object username).username
+        # #Get primary level-2 account credentials
+        $Credential = Get-Credential -UserName $UserName -Message "'Provide your Level-2 credentials.'"
+        <#
+        Map share drive with the provided primary level-2 credentials.
+        Without this the script won't have access to the share path when the script launches
+        #>
+        New-PSDrive -Name 'T' -PSProvider 'FileSystem' -Root '\\corefs.med.umich.edu\shared2' -Credential $Credential | Out-Null
+      }
+      #Specify command line arguments
+      $CommandLine = "-NoExit", "-Command $ScriptBlock"
+      <#
+      Start new elevated powershell process with command line arguments and the script path passed in as arguments
+      Im not 100% sure why this works and calls the script?
+      Potentially after the command line arguments are called it passes in the full script path which calls then executes the script
+      #>
+      Start-Process -FilePath PowerShell.exe -Verb Runas -ArgumentList "$CommandLine", "$ScriptPath"
+      #Exit current unelevated powershell session
+      Exit
+    }
+  }
+}
+function New-EncryptionKey{
+    <#
+      .SYNOPSIS
+      Creates new encryption key
+  
+      .DESCRIPTION
+      Creates new encryption key to be passed to the Convert-FromSecureString commandlet
+  
+      .PARAMETER Path
+      The path where the key file is saved
+  
+      .EXAMPLE
+      New-EncryptionKey -Path "~\encryption.key"
+    #>
+    param(
+      [string]$Path
+    )
+    #Initialize a 32 bit byte array
+    $EncryptionKey = New-Object Byte[] 32
+    #Create encryption key
+    [Security.Cryptography.RNGCryptoServiceProvider]::Create().GetBytes($EncryptionKey)
+    #Save encryption key to provided file path
+    if($Path){
+      $EncryptionKey | Out-File $Path
+    } else {
+      return $EncryptionKey
+    }
+  }
+function New-FileBrowser{
+    <#
+      .SYNOPSIS
+      Creates New File Browser Window
+  
+      .DESCRIPTION
+      -Prompts with file browser window to get content from a file input
+      .PARAMETER InitialDirectory
+      The path that opens when the browser window opens, default is current users desktop
+      .PARAMETER Filter
+      File filter to display only certain types of files, default is text and csv
+  
+      .EXAMPLE
+      New-FileBrowser -InitialDirectory "Documents" -Filter 'CSV Files (*.csv)|*.csv'
+    #>
+    param (
+    [string[]]$InitialDirectory = 'Desktop',
+    [string[]]$Filter = 'TXT Files (*.txt)|*.txt|CSV Files (*.csv)|*.csv',
+    [string]$Title = 'Select target file',
+    [switch]$CheckFileExists,
+    [switch]$CheckPathExists,
+    [switch]$OkRequiresInteraction,
+    [switch]$ShowPinnedPlaces
+    )
+  
+    Add-Type -AssemblyName System.Windows.Forms
+    $FileBrowser = New-Object System.Windows.Forms.OpenFileDialog -Property @{
+      InitialDirectory = [Environment]::GetFolderPath($InitialDirectory)
+      Filter = $Filter
+      Title = $Title
+      CheckFileExists = $CheckFileExists
+      CheckPathExists = $CheckPathExists
+      OkRequiresInteraction = $OkRequiresInteraction
+      ShowPinnedPlaces = $ShowPinnedPlaces
+    }
+    $result = $FileBrowser.ShowDialog(
+      (New-Object System.Windows.Forms.Form -Property @{TopMost = $true; TopLevel = $true})
+    )
+  
+    if($result -eq [System.Windows.Forms.DialogResult]::Cancel){
+      Write-Host "Cancel was selected, exiting program."
+      Start-Sleep -Seconds 3
+      exit
+    }
+    return $FileBrowser.FileName
+  }
+function New-ListBox{
+    <#
+      .SYNOPSIS
+      Creates List Box
+  
+      .DESCRIPTION
+      -Creates list box for getting user selected data
+      .PARAMETER TitleText
+      The title of the list box
+  
+      .PARAMETER LabelText
+      The description message for the list box
+  
+      .PARAMETER ListBoxItems
+      The items to put in the list box to be selected
+  
+      .EXAMPLE
+      New-ListBox -TitleText "Scope" -LabelText "Where would you like to run the script" -ListBoxItems Local,Remote
+    #>
+    Param(
+      [string[]]$TitleText,
+      [string[]]$LabelText,
+      [string[]]$ListBoxItems
+    )
+    Add-Type -AssemblyName System.Windows.Forms
+    Add-Type -AssemblyName System.Drawing
+  
+    $form = New-Object System.Windows.Forms.Form
+    $form.Text = $TitleText
+    $form.Size = New-Object System.Drawing.Size(300,200)
+    $form.StartPosition = 'CenterScreen'
+  
+    $okButton = New-Object System.Windows.Forms.Button
+    $okButton.Location = New-Object System.Drawing.Point(75,120)
+    $okButton.Size = New-Object System.Drawing.Size(75,23)
+    $okButton.Text = 'Ok'
+    $okButton.DialogResult = [System.Windows.Forms.DialogResult]::OK
+    $form.AcceptButton = $okButton
+    $form.Controls.Add($okButton)
+  
+    $cancelButton = New-Object System.Windows.Forms.Button
+    $cancelButton.Location = New-Object System.Drawing.Point(150,120)
+    $cancelButton.Size = New-Object System.Drawing.Size(75,23)
+    $cancelButton.Text = 'Cancel'
+    $cancelButton.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+    $form.CancelButton = $cancelButton
+    $form.Controls.Add($cancelButton)
+  
+    $label = New-Object System.Windows.Forms.Label
+    $label.Location = New-Object System.Drawing.Point(10,20)
+    $label.Size = New-Object System.Drawing.Size(280,20)
+    $label.Text = $LabelText
+    $form.Controls.Add($label)
+  
+    $listBox = New-Object System.Windows.Forms.ListBox
+    $listBox.Location = New-Object System.Drawing.Point(10,40)
+    $listBox.Size = New-Object System.Drawing.Size(260,20)
+    $listBox.Height = 80
+  
+    foreach ($ListboxItem in $ListBoxItems) {
+      [void] $listBox.Items.Add($ListboxItem)
+    }
+  
+    $form.Controls.Add($listBox)
+  
+    $form.Topmost = $true
+    $result = $form.ShowDialog()
+  
+    if($result -eq [System.Windows.Forms.DialogResult]::Cancel){
+      Write-Host "Cancel was selected, exiting program."
+      Start-Sleep -Seconds 3
+      exit
+    }
+  
+    return $listBox.SelectedItem
+  }
+enum DellCommandStatus {
+    Present
+    Installed
+    Failed
+}
+
+class DellCommandResult {
+    [string]$ComputerName
+    [bool]$Exists
+    [string]$Path
+    [DellCommandStatus]$Status
+
+    DellCommandResult([string]$computerName, [bool]$exists, [string]$path, [DellCommandStatus]$status){
+        $this.ComputerName = $computerName
+        $this.Exists = $exists
+        $this.Path = $path
+        $this.Status = $status
+    }
+}
+function Update-Dependencies{
+    <#
+      .SYNOPSIS
+      Installs Script Dependencies.
+  
+      .DESCRIPTION
+      Installs or sets the following script dependencies:
+        Sets the Execution Policy
+        Sets Repository Installation Policy
+        Installs/Updates Package Providers
+        Installs Modules
+        Imports Installed Modules
+      Depencies will only be installed if the necessary params are provided
+  
+      .PARAMETER ExecutionPolicy
+      Specifies the execution policy value
+  
+      .PARAMETER RepositoryName
+      Specifies the repository name to set the installation policy for
+  
+      .PARAMETER RepositoryPolicy
+      Specifies the installation policy for the Repository
+  
+      .PARAMETER ModuleNames
+      Specifies the module names to be verified and installed
+  
+      .PARAMETER PackageProviders
+      Specifies the package providers to install or update
+    #>
+  
+    param(
+      [string]$ExecutionPolicy,
+      [string]$RepositoryName,
+      [string]$RepositoryPolicy,
+      [string[]]$ModuleNames,
+      [string[]]$PackageProviders,
+      [switch]$Verbose
+    )
+    #Check if package provider parameter was provided
+    if($PackageProviders){
+      $_nugetUrl = "https://api.nuget.org/v3/index.json"
+      $packageSources = Get-PackageSource
+      if(@($packageSources).Where{$_.location -eq $_nugetUrl}.count -eq 0){
+        Register-PackageSource -Name MyNuGet -Location $_nugetUrl -ProviderName NuGet -Force
+      }
+      # if(!(Get-PackageProvider -Name))
+      foreach($PackageProvider in $PackageProviders){
+        #Get locally installed provider version
+        if($Verbose){
+          Write-Host "Package Provider: $PackageProvider"
+          Write-Host "Getting locally installed version ..."
+        }
+        $LocalVersion = Get-PackageProvider -Name $PackageProvider -Force -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Version
+        if($Verbose){
+          Write-Host "Locally installed version: $LocalVersion ..."
+        }
+        #Get most recent version from repository
+        if($Verbose){
+          Write-Host "Getting version from repository..."
+        }
+        $RepositoryVersion = Find-PackageProvider -Name $PackageProvider -Force | Select-Object -ExpandProperty Version
+        if($Verbose){
+          Write-Host "Repository version: $RepositoryVersion ..."
+        }
+        #Check if local version is less than repository version
+        if($LocalVersion -lt $RepositoryVersion){
+          #Install package provider from repository and save the version to a variable
+          if($Verbose){
+            Write-Host "Installing package provider version: $RepositoryVersion ..."
+          }
+          $InstallationVersion = Install-PackageProvider -Name $PackageProvider -Force
+          $InstallationVersion
+          $InstallationVersion = $InstallationVersion | Select-Object -ExpandProperty Version
+          #Display the package provider version that was installed
+          if($Verbose){
+            Write-Host "$PackageProvider updated to version: $InstallationVersion ..."
+            Write-Host "Importing new version ..."
+          }
+          #Import newly installed package provider and save version to a variable
+          $ImportVersion = Import-PackageProvider -Name $PackageProvider -RequiredVersion $RepositoryVersion -Force
+          # | Select-Object -ExpandProperty Version
+          #Display the package provider version that was imported
+          if($Verbose){
+            Write-Host "$PackageProvider Version: $ImportVersion imported successfully ..."
+          }
+        } else {
+          #Display installed version
+          if($Verbose){
+            Write-Host "$PackageProvider Version: $LocalVersion ..."
+          }
+        }
+      }
+    }
+    #Check if execution policy parameter was provided
+    if($ExecutionPolicy){
+      # Check if the Execution Policy is alread set to the specified policy
+      if((Get-ExecutionPolicy) -ne $ExecutionPolicy){
+        #Set execution policy to specified policy
+        Set-ExecutionPolicy $ExecutionPolicy -Force -Scope Process
+        Write-Host "Execution Policy: $ExecutionPolicy..."
+      } else {
+        Write-Host "Execution Policy: $ExecutionPolicy ..."
+      }
+    }
+  
+    # Check if repository name parameter was provided
+    if($RepositoryName){
+      # Check if the repository policy is already set to the specified policy
+      if((Get-PSRepository -Name $RepositoryName).InstallationPolicy -ne $RepositoryPolicy){
+        #Set repository installation policy to the specified policy
+        Set-PSRepository -Name $RepositoryName -InstallationPolicy $RepositoryPolicy
+        Write-Host "$RepositoryName Installation Policy: $RepositoryPolicy..."
+      } else {
+        Write-Host "$RepositoryName Installation Policy: $RepositoryPolicy ..."
+      }
+    }
+  
+    #Check if Module Name parameter was provided
+    if($ModuleNames){
+      foreach($ModuleName in $ModuleNames){
+        #Check if specified module is already installed
+        if(Get-InstalledModule -Name $ModuleName -ErrorAction SilentlyContinue){
+          Write-Host "Module Installed: $ModuleName..."
+        } else {
+          #Install the specified module
+          Install-Module -Name $ModuleName -Scope CurrentUser -AcceptLicense
+          Write-Host "Module Installed: $ModuleName..."
+        }
+        # Check if the specified module is already imported
+        if(Get-Module -Name $ModuleName){
+          Write-Host "Module Imported: $ModuleName..."
+        } else {
+          #Import the specified module
+          Import-Module $ModuleName
+          Write-Host "Module Imported: $ModuleName..."
+        }
+      }
+    }
+  }
 

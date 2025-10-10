@@ -19,30 +19,43 @@ function Get-DellCommand {
     $checkScript = {
         param($paths)
         foreach ($path in $paths) {
-            if (Test-Path $path) { return $true }
+            if (Test-Path $path) { return $path }
         }
-        return $false
+        return $null
     }
 
-    $results = @{}
+    $results = @()
 
     switch ($PSCmdlet.ParameterSetName) {
         "ComputerName" {
             foreach ($computer in $ComputerName) {
-                $status = Invoke-Command -ComputerName $computer -Credential $Credential `
+                $foundPath = Invoke-Command -ComputerName $computer -Credential $Credential `
                     -ScriptBlock $checkScript -ArgumentList $dellCommandPaths -ErrorAction SilentlyContinue
-                $results[$computer] = [bool]$status
+                $results += [pscustomobject]@{
+                    ComputerName = $computer
+                    Exists       = [bool]$foundPath
+                    Path         = $foundPath
+                }
             }
         }
         "PSSession" {
             foreach ($session in $PSSession) {
-                $status = Invoke-Command -Session $session `
+                $foundPath = Invoke-Command -Session $session `
                     -ScriptBlock $checkScript -ArgumentList $dellCommandPaths -ErrorAction SilentlyContinue
-                $results[$session.ComputerName] = [bool]$status
+                $results += [pscustomobject]@{
+                    ComputerName = $session.ComputerName
+                    Exists       = [bool]$foundPath
+                    Path         = $foundPath
+                }
             }
         }
         Default {
-            $results["Localhost"] = & $checkScript $dellCommandPaths
+            $foundPath = & $checkScript $dellCommandPaths
+            $results += [pscustomobject]@{
+                ComputerName = "Localhost"
+                Exists       = [bool]$foundPath
+                Path         = $foundPath
+            }
         }
     }
 

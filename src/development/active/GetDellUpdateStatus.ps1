@@ -1,12 +1,36 @@
 function Get-DellUpdateStatus {
     param(
         [string]$DownloadUrl = "https://dl.dell.com/FOLDER13309338M/2/Dell-Command-Update-Application_Y5VJV_WIN64_5.5.0_A00_01.EXE",
+        [pscredential]$Credential,
+        [DellCommandCategory[]]$Categories,
         [switch]$UninstallWhenDone,
         [switch]$ApplyUpdates,
         [switch]$RebootWhenFinished,
         [switch]$Intune,
         [switch]$ClassicCore
     )
+
+    # Map category to DCU CLI argument
+    $categoryMap = @{
+        [DellCommandCategory]::BIOS        = "bios"
+        [DellCommandCategory]::Chipset     = "chipset"
+        [DellCommandCategory]::Network     = "network"
+        [DellCommandCategory]::Video       = "video"
+        [DellCommandCategory]::Audio       = "audio"
+        [DellCommandCategory]::Storage     = "storage"
+        [DellCommandCategory]::Application = "application"
+        [DellCommandCategory]::Security    = "security"
+        [DellCommandCategory]::Other       = "other"
+    }
+    $catArgs = ($Categories | ForEach-Object { $categoryMap[$_] }) -join ","
+
+    $instances = Confirm-DellCommandExists -ComputerName $ComputerName -Credential $Credential -DownloadUrl $DownloadUrl | Where-Object Status -eq [DellCommandStatus]::Installed
+    
+    foreach ($instance in $instances){
+        $dcuCli = $instance.Path
+        
+        & $dcuCli /scan -report="C:\Temp\" -silent -updateType="$catArgs"
+    }
 
     $tempDir = "C:\Temp\"
     $installerPath = "$tempDir\DellCommandUpdate_5.5.0.exe"
