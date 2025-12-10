@@ -482,11 +482,37 @@
                     are available before running scripts.
                 </p>
                 <p class="note">
-                    <strong>Tip:</strong> You can filter or sort the output (for example, by free space) or pipe it
-                    into other commands like <code class="inline-code">Where-Object</code> and
-                    <code class="inline-code">Select-Object</code> to focus on specific drives or properties.
+                    <strong>Tip:</strong> You can filter or shape the output using
+                    <code class="inline-code">Where-Object</code> and <code class="inline-code">Select-Object</code>.
+                    Here are some common examples:
                 </p>
+
+                <!-- Base command -->
                 <pre><copy-button element-id="getDriveInfo"></copy-button><code id="getDriveInfo">Get-PSDrive -PSProvider FileSystem</code></pre>
+
+                <!-- Example 1: Low free space -->
+                <pre><copy-button element-id="getDriveInfoLowFree"></copy-button><code id="getDriveInfoLowFree">
+# Show only drives with less than 20 GB free
+Get-PSDrive -PSProvider FileSystem |
+    Where-Object { $_.Free -lt 20GB }</code></pre>
+
+                <!-- Example 2: Specific drives with selected props -->
+                <pre><copy-button element-id="getDriveInfoSelectProps"></copy-button><code id="getDriveInfoSelectProps">
+# Show only C: and D:, with selected properties
+Get-PSDrive -PSProvider FileSystem |
+    Where-Object { $_.Name -in 'C','D' } |
+    Select-Object Name,
+        @{Name='Used (GB)';Expression={'{0:N2}' -f ($_.Used / 1GB)}},
+        @{Name='Free (GB)';Expression={'{0:N2}' -f ($_.Free / 1GB)}}</code></pre>
+
+                <!-- Example 3: Sort by free space -->
+                <pre><copy-button element-id="getDriveInfoSorted"></copy-button><code id="getDriveInfoSorted">
+# List all drives sorted by free space (ascending)
+Get-PSDrive -PSProvider FileSystem |
+    Sort-Object Free |
+    Select-Object Name,
+        @{Name='Used (GB)';Expression={'{0:N2}' -f ($_.Used / 1GB)}},
+        @{Name='Free (GB)';Expression={'{0:N2}' -f ($_.Free / 1GB)}}</code></pre>
             </li>
         </ul>
         <p>
