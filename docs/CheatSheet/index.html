@@ -473,6 +473,21 @@
                 <pre><copy-button element-id="enterPSSessionIp"></copy-button><code id="enterPSSessionIp">Enter-PSSession -ComputerName 10.0.120.5 -Credential $cred</code></pre>
                 <pre><copy-button element-id="invokeCommandIp"></copy-button><code id="invokeCommandIp">Invoke-Command -ComputerName 10.0.120.5 -Credential $cred -ScriptBlock { Get-Service }</code></pre>
             </li>
+            <li>
+                <strong>Get Drive Information</strong><br>
+                <p class="margin-top">
+                    Use this command to list all file system drives available in your current PowerShell session,
+                    including their names, used and free space, and root paths. This is useful for quickly checking
+                    which drives are mapped, how much space is left, and verifying that network or removable drives
+                    are available before running scripts.
+                </p>
+                <p class="note">
+                    <strong>Tip:</strong> You can filter or sort the output (for example, by free space) or pipe it
+                    into other commands like <code class="inline-code">Where-Object</code> and
+                    <code class="inline-code">Select-Object</code> to focus on specific drives or properties.
+                </p>
+                <pre><copy-button element-id="getDriveInfo"></copy-button><code id="getDriveInfo">Get-PSDrive -PSProvider FileSystem</code></pre>
+            </li>
         </ul>
         <p>
             Each of these examples can be used locally or extended to remote systems by leveraging
