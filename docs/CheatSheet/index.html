@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>PowerShell Cheat Sheet</title>
@@ -24,7 +25,8 @@
             line-height: 1.6;
         }
 
-        header, footer {
+        header,
+        footer {
             background: linear-gradient(90deg, #5D5FEF 0%, #9845E8 100%);
             color: #ffffff;
             padding: 1.5rem 1rem;
@@ -32,7 +34,8 @@
             box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.2);
         }
 
-        header h1, footer p {
+        header h1,
+        footer p {
             margin: 0;
         }
 
@@ -45,7 +48,8 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
         }
 
-        h2, h3 {
+        h2,
+        h3 {
             margin-bottom: 1rem;
             font-weight: 500;
         }
@@ -231,273 +235,291 @@
             margin-top: 1rem;
             margin-bottom: .5rem;
         }
+
         .margin-top {
             display: block;
             margin-top: 1rem;
             margin-bottom: 0;
         }
+
         .block-margin {
             display: block;
             margin-top: 1rem;
             margin-bottom: 0.5rem;
         }
-
     </style>
 </head>
+
 <body>
-<header>
-    <h1>PowerShell Cheat Sheet</h1>
-    <nav>
-        <ul>
-            <li><a href="#intro">Introduction</a></li>
-            <li><a href="#basics">Basic Cmdlets</a></li>
-            <li><a href="#pipelines">Pipelines</a></li>
-            <li><a href="#remoting">Remoting &amp; Remote Management</a></li>
-            <li><a href="#gathering-info">Gathering Info</a></li>
-            <li><a href="#use-cases">Use Cases</a></li>
-        </ul>
-    </nav>
-</header>
+    <header>
+        <h1>PowerShell Cheat Sheet</h1>
+        <nav>
+            <ul>
+                <li><a href="#intro">Introduction</a></li>
+                <li><a href="#basics">Basic Cmdlets</a></li>
+                <li><a href="#pipelines">Pipelines</a></li>
+                <li><a href="#remoting">Remoting &amp; Remote Management</a></li>
+                <li><a href="#gathering-info">Gathering Info</a></li>
+                <li><a href="#use-cases">Use Cases</a></li>
+                <li><a href="#custom-scripts">Custom Scripts</a></li>
 
-<main>
-    <section id="intro">
-        <h2>Introduction</h2>
-        <p>
-            PowerShell is a cross-platform task automation and configuration management framework consisting of a
-            command-line
-            shell and a scripting language built on .NET. It is widely used by system administrators and power users for
-            managing servers and computers, both locally and remotely.
-        </p>
-    </section>
+            </ul>
+        </nav>
+    </header>
 
-    <section id="basics">
-        <h2>Basic Cmdlets</h2>
-        <ul>
-            <li>
-                <strong>Get-Help &lt;Command&gt;</strong>: Displays help about PowerShell cmdlets.
-                <br>
-                <div class="example"><em>Example:</em> <code class="inline-code">Get-Help Get-Service</code></div>
-            </li>
-            <li>
-                <strong>Get-Command</strong>: Lists all available commands in the current session or narrows it down by
-                specifying parameters.
-                <br>
-                <div class="example"><em>Example:</em> <code class="inline-code">Get-Command -Name *process*</code>
-                </div>
-            </li>
-            <li>
-                <strong>Get-Alias</strong>: Shows cmdlet aliases available in the current session.
-                <br>
-                <div class="example"><em>Example:</em> <code class="inline-code">Get-Alias -Name gcm</code></div>
-            </li>
-            <li>
-                <strong>Get-ExecutionPolicy</strong>: Displays the current PowerShell script execution policy.
-                <br>
-                <div class="example"><em>Example:</em><code class="inline-code">Get-ExecutionPolicy</code></div>
-            </li>
-        </ul>
-        <p>
-            For additional details such as examples, parameter descriptions, and usage, use the
-            <code class="inline-code">-Full</code>
-            parameter:
-        </p>
-        <pre><copy-button element-id="getHelpFull"></copy-button><code id="getHelpFull">Get-Help Get-Service -Full</code></pre>
-    </section>
+    <main>
+        <section id="intro">
+            <h2>Introduction</h2>
+            <p>
+                PowerShell is a cross-platform task automation and configuration management framework consisting of a
+                command-line
+                shell and a scripting language built on .NET. It is widely used by system administrators and power users
+                for
+                managing servers and computers, both locally and remotely.
+            </p>
+        </section>
 
-    <section id="pipelines">
-        <h2>Working with Pipelines</h2>
-        <p>
-            The PowerShell pipeline (<code class="inline-code">|</code>) passes the output of one cmdlet as input to
-            another, allowing you
-            to chain
-            commands together. For example, you can list running processes and then stop one by name:
-        </p>
-        <pre><copy-button element-id="getProcessPipeline"></copy-button><code id="getProcessPipeline">Get-Process | Where-Object { $_.Name -eq "notepad" } | Stop-Process</code></pre>
-        <p>
-            In this pipeline, <code class="inline-code">Get-Process</code> retrieves all running processes. The
-            filtered results (where the
-            process
-            name is "notepad") are passed down the pipeline to <code class="inline-code">Stop-Process</code>, stopping
-            that process.
-        </p>
-    </section>
+        <section id="basics">
+            <h2>Basic Cmdlets</h2>
+            <ul>
+                <li>
+                    <strong>Get-Help &lt;Command&gt;</strong>: Displays help about PowerShell cmdlets.
+                    <br>
+                    <div class="example"><em>Example:</em> <code class="inline-code">Get-Help Get-Service</code></div>
+                </li>
+                <li>
+                    <strong>Get-Command</strong>: Lists all available commands in the current session or narrows it down
+                    by
+                    specifying parameters.
+                    <br>
+                    <div class="example"><em>Example:</em> <code class="inline-code">Get-Command -Name *process*</code>
+                    </div>
+                </li>
+                <li>
+                    <strong>Get-Alias</strong>: Shows cmdlet aliases available in the current session.
+                    <br>
+                    <div class="example"><em>Example:</em> <code class="inline-code">Get-Alias -Name gcm</code></div>
+                </li>
+                <li>
+                    <strong>Get-ExecutionPolicy</strong>: Displays the current PowerShell script execution policy.
+                    <br>
+                    <div class="example"><em>Example:</em><code class="inline-code">Get-ExecutionPolicy</code></div>
+                </li>
+            </ul>
+            <p>
+                For additional details such as examples, parameter descriptions, and usage, use the
+                <code class="inline-code">-Full</code>
+                parameter:
+            </p>
+            <pre><copy-button element-id="getHelpFull"></copy-button><code id="getHelpFull">Get-Help Get-Service -Full</code></pre>
+        </section>
 
-    <section id="remoting">
-        <h2>Remoting &amp; Remote Management</h2>
-        <p>
-            PowerShell remoting allows you to run cmdlets and scripts on remote computers via WinRM (Windows Remote
-            Management). Some key cmdlets include:
-        </p>
-        <ul>
-            <li><strong>Enable-PSRemoting</strong>: Configures the local computer to receive remote commands.</li>
-            <li><strong>Test-WsMan</strong>: Test a connection attempt with a remote computer</li>
-            <li><strong>Get-Credential</strong>: Opens a prompt for credentials. It securely stores the username and password in a PSCredential object.</li>
-            <li><strong>Enter-PSSession</strong>: Starts an interactive session with a remote computer.</li>
-            <li><strong>Invoke-Command</strong>: Runs commands on local or remote computers.</li>
-            <li><strong>New-CimSession</strong>: client-side object representing a connection to a local computer or a remote computer.</li>
-        </ul>
-        <pre><copy-button element-id="getCredential"></copy-button><code id="getCredential">$cred=Get-Credential</code></pre>
-        <pre><copy-button element-id="invokeCommand"></copy-button><code id="invokeCommand">Invoke-Command -ComputerName Server01 -Credential $cred -ScriptBlock { Get-Service }</code></pre>
-        <pre><copy-button element-id="enterPsSession"></copy-button><code id="enterPsSession">Enter-PSSession -ComputerName Server01 -Credential $cred</code></pre>
-        <p>
-            You can also use <strong>WS-Management</strong> or <strong>SSH-based remoting</strong> (in newer versions)
-            to manage
-            systems that support these protocols.
-        </p>
-    </section>
+        <section id="pipelines">
+            <h2>Working with Pipelines</h2>
+            <p>
+                The PowerShell pipeline (<code class="inline-code">|</code>) passes the output of one cmdlet as input to
+                another, allowing you
+                to chain
+                commands together. For example, you can list running processes and then stop one by name:
+            </p>
+            <pre><copy-button element-id="getProcessPipeline"></copy-button><code id="getProcessPipeline">Get-Process | Where-Object { $_.Name -eq "notepad" } | Stop-Process</code></pre>
+            <p>
+                In this pipeline, <code class="inline-code">Get-Process</code> retrieves all running processes. The
+                filtered results (where the
+                process
+                name is "notepad") are passed down the pipeline to <code class="inline-code">Stop-Process</code>,
+                stopping
+                that process.
+            </p>
+        </section>
 
-    <section id="gathering-info">
-        <h2>Gathering System/Hardware Info</h2>
-        <p>
-            PowerShell provides <strong>CIM (Common Information Model) cmdlets</strong> to gather system, hardware, and
-        <strong class="section-label">Registry Queries:</strong>
-        </p>
-        <ul>
-            <li><code class="inline-code">Get-CimInstance -ClassName Win32_OperatingSystem</code></li>
-            <li><code class="inline-code">Get-CimInstance -ClassName Win32_ComputerSystem</code></li>
-        </ul>
-        <strong class="section-label">Registry Queries:</strong>
-        <ul>
-            <li>
-                Access registry keys using <code class="inline-code">Get-ItemProperty</code> or
-                <code class="inline-code">Get-ItemPropertyValue</code>.
-            </li>
-        </ul>
-        <strong class="section-label">Environment Variables:</strong>
-        <ul>
-            <li>
-                Use the <code class="inline-code">$Env:</code> drive, for example <code class="inline-code">$Env:Path</code>,
-                to retrieve environment settings.
-            </li>
-        </ul>
-        <strong class="section-label">System APIs:</strong>
-        <ul>
-            <li>
-                Many scripts internally use .NET classes that call native Windows APIs for
-                deeper insights.
-            </li>
-        </ul>
-        <p class="margin-top">
-            Combine these methods with remoting to retrieve information from multiple remote systems:
-        </p>
-        <pre><copy-button element-id="invokeGetCimInstance"></copy-button><code id="invokeGetCimInstance">Invoke-Command -ComputerName Server01,Server02 -Credential $cred -ScriptBlock {
+        <section id="remoting">
+            <h2>Remoting &amp; Remote Management</h2>
+            <p>
+                PowerShell remoting allows you to run cmdlets and scripts on remote computers via WinRM (Windows Remote
+                Management). Some key cmdlets include:
+            </p>
+            <ul>
+                <li><strong>Enable-PSRemoting</strong>: Configures the local computer to receive remote commands.</li>
+                <li><strong>Test-WsMan</strong>: Test a connection attempt with a remote computer</li>
+                <li><strong>Get-Credential</strong>: Opens a prompt for credentials. It securely stores the username and
+                    password in a PSCredential object.</li>
+                <li><strong>Enter-PSSession</strong>: Starts an interactive session with a remote computer.</li>
+                <li><strong>Invoke-Command</strong>: Runs commands on local or remote computers.</li>
+                <li><strong>New-CimSession</strong>: client-side object representing a connection to a local computer or
+                    a remote computer.</li>
+            </ul>
+            <pre><copy-button element-id="getCredential"></copy-button><code id="getCredential">$cred=Get-Credential</code></pre>
+            <pre><copy-button element-id="invokeCommand"></copy-button><code id="invokeCommand">Invoke-Command -ComputerName Server01 -Credential $cred -ScriptBlock { Get-Service }</code></pre>
+            <pre><copy-button element-id="enterPsSession"></copy-button><code id="enterPsSession">Enter-PSSession -ComputerName Server01 -Credential $cred</code></pre>
+            <p>
+                You can also use <strong>WS-Management</strong> or <strong>SSH-based remoting</strong> (in newer
+                versions)
+                to manage
+                systems that support these protocols.
+            </p>
+        </section>
+
+        <section id="gathering-info">
+            <h2>Gathering System/Hardware Info</h2>
+            <p>
+                PowerShell provides <strong>CIM (Common Information Model) cmdlets</strong> to gather system, hardware,
+                and
+                <strong class="section-label">Registry Queries:</strong>
+            </p>
+            <ul>
+                <li><code class="inline-code">Get-CimInstance -ClassName Win32_OperatingSystem</code></li>
+                <li><code class="inline-code">Get-CimInstance -ClassName Win32_ComputerSystem</code></li>
+            </ul>
+            <strong class="section-label">Registry Queries:</strong>
+            <ul>
+                <li>
+                    Access registry keys using <code class="inline-code">Get-ItemProperty</code> or
+                    <code class="inline-code">Get-ItemPropertyValue</code>.
+                </li>
+            </ul>
+            <strong class="section-label">Environment Variables:</strong>
+            <ul>
+                <li>
+                    Use the <code class="inline-code">$Env:</code> drive, for example <code
+                        class="inline-code">$Env:Path</code>,
+                    to retrieve environment settings.
+                </li>
+            </ul>
+            <strong class="section-label">System APIs:</strong>
+            <ul>
+                <li>
+                    Many scripts internally use .NET classes that call native Windows APIs for
+                    deeper insights.
+                </li>
+            </ul>
+            <p class="margin-top">
+                Combine these methods with remoting to retrieve information from multiple remote systems:
+            </p>
+            <pre><copy-button element-id="invokeGetCimInstance"></copy-button><code id="invokeGetCimInstance">Invoke-Command -ComputerName Server01,Server02 -Credential $cred -ScriptBlock {
     Get-CimInstance -ClassName Win32_BIOS
 }</code></pre>
-        <pre><copy-button element-id="getCimInstance"></copy-button><code id="getCimInstance">Get-CimInstance -ComputerName Server01,Server02 -Credential $cred</code></pre>
-    </section>
+            <pre><copy-button element-id="getCimInstance"></copy-button><code id="getCimInstance">Get-CimInstance -ComputerName Server01,Server02 -Credential $cred</code></pre>
+        </section>
 
-    <section id="use-cases">
-        <h2>Common Use Cases for Desktop Support</h2>
-        <p>
-            Below are practical scenarios where PowerShell can simplify day-to-day tasks. These examples highlight
-            built-in
-            techniques that you can adapt to your environment:
-        </p>
-        <ul>
-            <li>
-                <strong>Installing Language Packages</strong><br>
-                You can use DISM to install language packs:
-                <pre><copy-button element-id="installBasicLanguage"></copy-button><code id="installBasicLanguage">DISM /Online /Add-Capability /CapabilityName:Language.Basic~~~&lt;Culture&gt;~0.0.1.0</code></pre>
-                <pre><copy-button element-id="installHandwritingLanguage"></copy-button><code id="installHandwritingLanguage">DISM /Online /Add-Capability /CapabilityName:Language.Handwriting~~~&lt;Culture&gt;~0.0.1.0</code></pre>
-                (Replace <code class="inline-code">&lt;Culture&gt;</code> with your desired language code, such as
-                "en-US" or "fr-FR".)
-            </li>
-            <li>
-                <strong>Getting the Current User</strong><br>
-                <pre><copy-button element-id="getUserSecPrincipal"></copy-button><code id="getUserSecPrincipal">[System.Security.Principal.WindowsIdentity]::GetCurrent().Name</code></pre>
-                or simply:
-                <pre><copy-button element-id="getUserEnvVariable"></copy-button><code id="getUserEnvVariable">$Env:USERNAME</code></pre>
-            </li>
-            <li>
-                <strong>Removing a User Profile</strong><br>
-                <pre><copy-button element-id="removeUserProfile"></copy-button><code id="removeUserProfile">Get-CimInstance -ClassName Win32_UserProfile | Where-Object {
+        <section id="use-cases">
+            <h2>Common Use Cases for Desktop Support</h2>
+            <p>
+                Below are practical scenarios where PowerShell can simplify day-to-day tasks. These examples highlight
+                built-in
+                techniques that you can adapt to your environment:
+            </p>
+            <ul>
+                <li>
+                    <strong>Installing Language Packages</strong><br>
+                    You can use DISM to install language packs:
+                    <pre><copy-button element-id="installBasicLanguage"></copy-button><code id="installBasicLanguage">DISM /Online /Add-Capability /CapabilityName:Language.Basic~~~&lt;Culture&gt;~0.0.1.0</code></pre>
+                    <pre><copy-button element-id="installHandwritingLanguage"></copy-button><code id="installHandwritingLanguage">DISM /Online /Add-Capability /CapabilityName:Language.Handwriting~~~&lt;Culture&gt;~0.0.1.0</code></pre>
+                    (Replace <code class="inline-code">&lt;Culture&gt;</code> with your desired language code, such as
+                    "en-US" or "fr-FR".)
+                </li>
+                <li>
+                    <strong>Getting the Current User</strong><br>
+                    <pre><copy-button element-id="getUserSecPrincipal"></copy-button><code id="getUserSecPrincipal">[System.Security.Principal.WindowsIdentity]::GetCurrent().Name</code></pre>
+                    or simply:
+                    <pre><copy-button element-id="getUserEnvVariable"></copy-button><code id="getUserEnvVariable">$Env:USERNAME</code></pre>
+                </li>
+                <li>
+                    <strong>Removing a User Profile</strong><br>
+                    <pre><copy-button element-id="removeUserProfile"></copy-button><code id="removeUserProfile">Get-CimInstance -ClassName Win32_UserProfile | Where-Object {
     $_.LocalPath -like "*&lt;username&gt;*"
 } | Remove-CimInstance</code></pre>
-                (Replace <code class="inline-code">&lt;username&gt;</code> with the profile you want to remove.)
-            </li>
-            <li>
-                <strong>Renaming Printers</strong><br>
-                <pre><copy-button element-id="renamePrinter"></copy-button><code id="renamePrinter">Get-Printer -Name "OldPrinterName" | Rename-Printer -NewName "NewPrinterName"</code></pre>
-            </li>
-            <li>
-                <strong>Clearing Print Queues</strong><br>
-                <pre><copy-button element-id="clearPrintJobs"></copy-button><code id="clearPrintJobs">Get-Printer | ForEach-Object {
+                    (Replace <code class="inline-code">&lt;username&gt;</code> with the profile you want to remove.)
+                </li>
+                <li>
+                    <strong>Renaming Printers</strong><br>
+                    <pre><copy-button element-id="renamePrinter"></copy-button><code id="renamePrinter">Get-Printer -Name "OldPrinterName" | Rename-Printer -NewName "NewPrinterName"</code></pre>
+                </li>
+                <li>
+                    <strong>Clearing Print Queues</strong><br>
+                    <pre><copy-button element-id="clearPrintJobs"></copy-button><code id="clearPrintJobs">Get-Printer | ForEach-Object {
     Get-PrintJob -PrinterName $_.Name | Remove-PrintJob
 }</code></pre>
-                This finds all printers, lists their print jobs, and removes them.
-            </li>
-            <li>
-                <strong>Restarting the Print Spooler Service</strong><br>
-                <pre><copy-button element-id="stopPrintSpooler"></copy-button><code id="stopPrintSpooler">Stop-Service -Name Spooler -Force</code></pre>
-                <pre><copy-button element-id="startPrintSpooler"></copy-button><code id="startPrintSpooler">Start-Service -Name Spooler</code></pre>
-            </li>
-            <li>
-                <strong>Restarting Windows Explorer</strong><br>
-                <pre><copy-button element-id="stopWindowsExplorer"></copy-button><code id="stopWindowsExplorer">Stop-Process -Name explorer</code></pre>
-                <pre><copy-button element-id="startWindowsExplorer"></copy-button><code id="startWindowsExplorer">Start-Process explorer</code></pre>
+                    This finds all printers, lists their print jobs, and removes them.
+                </li>
+                <li>
+                    <strong>Restarting the Print Spooler Service</strong><br>
+                    <pre><copy-button element-id="stopPrintSpooler"></copy-button><code id="stopPrintSpooler">Stop-Service -Name Spooler -Force</code></pre>
+                    <pre><copy-button element-id="startPrintSpooler"></copy-button><code id="startPrintSpooler">Start-Service -Name Spooler</code></pre>
+                </li>
+                <li>
+                    <strong>Restarting Windows Explorer</strong><br>
+                    <pre><copy-button element-id="stopWindowsExplorer"></copy-button><code id="stopWindowsExplorer">Stop-Process -Name explorer</code></pre>
+                    <pre><copy-button element-id="startWindowsExplorer"></copy-button><code id="startWindowsExplorer">Start-Process explorer</code></pre>
 
-            </li>
-            <li>
-                <strong>Getting Current Sessions</strong><br>
-                <pre><copy-button element-id="getCurrentUserSessionQUser"></copy-button><code id="getCurrentUserSessionQUser">quser</code></pre>
-                or:
-                <pre><copy-button element-id="getCurrentUserSessionsCim"></copy-button><code id="getCurrentUserSessionsCim">Get-CimInstance -ClassName Win32_LogonSession</code></pre>
-            </li>
-            <li>
-                <strong>Software Installation &amp; Removal Automation</strong><br>
-                Use <code class="inline-code">Start-Process</code> with MSI or EXE installers to silently
-                install/remove software:
-                <pre><copy-button element-id="startMsiProcess"></copy-button><code id="startMsiProcess">Start-Process msiexec.exe -ArgumentList "/i path\to\installer.msi /quiet /norestart" -Wait</code></pre>
-            </li>
-            <li>
-                <strong>Network Adapter Configuration</strong><br>
-                View adapters:
-                <pre><copy-button element-id="getNetAdapter"></copy-button><code id="getNetAdapter">Get-NetAdapter</code></pre>
-                Disable or enable an adapter:
-                <pre><copy-button element-id="disableNetAdapter"></copy-button><code id="disableNetAdapter">Disable-NetAdapter -Name "Ethernet0" -Confirm:$false</code></pre>
-                <pre><copy-button element-id="enableNetAdapter"></copy-button><code id="enableNetAdapter">Enable-NetAdapter -Name "Ethernet0"</code></pre>
-            </li>
-            <li>
-                <strong>Remote Connections</strong><br>
-                <p class="margin-top">When a device has no DNS entry, you can use its IP address with remoting cmdlets:</p>
-                <p class="note"><strong>Note:</strong>  There are two things you need to do in order for this to work properly.<br class="margin-top">
-                1.  You must set the TrustedHosts list to include the target IP with the <code class="inline-code">Set-Item</code> command.<br>
-                2.  You must specify credentials with the <code class="inline-code">-Credential</code> parameter.</p>
-                <p class="margin-top">This can be used with any remote cmdlet, such as:
-                <code class="inline-code">Invoke-Command</code> or
-                <code class="inline-code">Enter-PSSession</code>.</p>
-                <br>
-                1. Set the TrustedHosts to include the target IP or IP range:
-                <pre><copy-button element-id="setTrustedHosts"></copy-button><code id="setTrustedHosts">Set-Item WSMan:\localhost\Client\TrustedHosts -Value "10.0.0.0"</code></pre>
-                2. Use the IP address in your remote command with credentials:
-                <pre><copy-button element-id="enterPSSessionIp"></copy-button><code id="enterPSSessionIp">Enter-PSSession -ComputerName 10.0.120.5 -Credential $cred</code></pre>
-                <pre><copy-button element-id="invokeCommandIp"></copy-button><code id="invokeCommandIp">Invoke-Command -ComputerName 10.0.120.5 -Credential $cred -ScriptBlock { Get-Service }</code></pre>
-            </li>
-            <li>
-                <strong>Get Drive Information</strong><br>
-                <p class="margin-top">
-                    Use this command to list all file system drives available in your current PowerShell session,
-                    including their names, used and free space, and root paths. This is useful for quickly checking
-                    which drives are mapped, how much space is left, and verifying that network or removable drives
-                    are available before running scripts.
-                </p>
-                <p class="note">
-                    <strong>Tip:</strong> You can filter or shape the output using
-                    <code class="inline-code">Where-Object</code> and <code class="inline-code">Select-Object</code>.
-                    Here are some common examples:
-                </p>
+                </li>
+                <li>
+                    <strong>Getting Current Sessions</strong><br>
+                    <pre><copy-button element-id="getCurrentUserSessionQUser"></copy-button><code id="getCurrentUserSessionQUser">quser</code></pre>
+                    or:
+                    <pre><copy-button element-id="getCurrentUserSessionsCim"></copy-button><code id="getCurrentUserSessionsCim">Get-CimInstance -ClassName Win32_LogonSession</code></pre>
+                </li>
+                <li>
+                    <strong>Software Installation &amp; Removal Automation</strong><br>
+                    Use <code class="inline-code">Start-Process</code> with MSI or EXE installers to silently
+                    install/remove software:
+                    <pre><copy-button element-id="startMsiProcess"></copy-button><code id="startMsiProcess">Start-Process msiexec.exe -ArgumentList "/i path\to\installer.msi /quiet /norestart" -Wait</code></pre>
+                </li>
+                <li>
+                    <strong>Network Adapter Configuration</strong><br>
+                    View adapters:
+                    <pre><copy-button element-id="getNetAdapter"></copy-button><code id="getNetAdapter">Get-NetAdapter</code></pre>
+                    Disable or enable an adapter:
+                    <pre><copy-button element-id="disableNetAdapter"></copy-button><code id="disableNetAdapter">Disable-NetAdapter -Name "Ethernet0" -Confirm:$false</code></pre>
+                    <pre><copy-button element-id="enableNetAdapter"></copy-button><code id="enableNetAdapter">Enable-NetAdapter -Name "Ethernet0"</code></pre>
+                </li>
+                <li>
+                    <strong>Remote Connections</strong><br>
+                    <p class="margin-top">When a device has no DNS entry, you can use its IP address with remoting
+                        cmdlets:</p>
+                    <p class="note"><strong>Note:</strong> There are two things you need to do in order for this to work
+                        properly.<br class="margin-top">
+                        1. You must set the TrustedHosts list to include the target IP with the <code
+                            class="inline-code">Set-Item</code> command.<br>
+                        2. You must specify credentials with the <code class="inline-code">-Credential</code> parameter.
+                    </p>
+                    <p class="margin-top">This can be used with any remote cmdlet, such as:
+                        <code class="inline-code">Invoke-Command</code> or
+                        <code class="inline-code">Enter-PSSession</code>.
+                    </p>
+                    <br>
+                    1. Set the TrustedHosts to include the target IP or IP range:
+                    <pre><copy-button element-id="setTrustedHosts"></copy-button><code id="setTrustedHosts">Set-Item WSMan:\localhost\Client\TrustedHosts -Value "10.0.0.0"</code></pre>
+                    2. Use the IP address in your remote command with credentials:
+                    <pre><copy-button element-id="enterPSSessionIp"></copy-button><code id="enterPSSessionIp">Enter-PSSession -ComputerName 10.0.120.5 -Credential $cred</code></pre>
+                    <pre><copy-button element-id="invokeCommandIp"></copy-button><code id="invokeCommandIp">Invoke-Command -ComputerName 10.0.120.5 -Credential $cred -ScriptBlock { Get-Service }</code></pre>
+                </li>
+                <li>
+                    <strong>Get Drive Information</strong><br>
+                    <p class="margin-top">
+                        Use this command to list all file system drives available in your current PowerShell session,
+                        including their names, used and free space, and root paths. This is useful for quickly checking
+                        which drives are mapped, how much space is left, and verifying that network or removable drives
+                        are available before running scripts.
+                    </p>
+                    <p class="note">
+                        <strong>Tip:</strong> You can filter or shape the output using
+                        <code class="inline-code">Where-Object</code> and <code
+                            class="inline-code">Select-Object</code>.
+                        Here are some common examples:
+                    </p>
 
-                <!-- Base command -->
-                <pre><copy-button element-id="getDriveInfo"></copy-button><code id="getDriveInfo">Get-PSDrive -PSProvider FileSystem</code></pre>
+                    <!-- Base command -->
+                    <pre><copy-button element-id="getDriveInfo"></copy-button><code id="getDriveInfo">Get-PSDrive -PSProvider FileSystem</code></pre>
 
-                <!-- Example 1: Low free space -->
-                <pre><copy-button element-id="getDriveInfoLowFree"></copy-button><code id="getDriveInfoLowFree">
+                    <!-- Example 1: Low free space -->
+                    <pre><copy-button element-id="getDriveInfoLowFree"></copy-button><code id="getDriveInfoLowFree">
 # Show only drives with less than 20 GB free
 Get-PSDrive -PSProvider FileSystem |
     Where-Object { $_.Free -lt 20GB }</code></pre>
 
-                <!-- Example 2: Specific drives with selected props -->
-                <pre><copy-button element-id="getDriveInfoSelectProps"></copy-button><code id="getDriveInfoSelectProps">
+                    <!-- Example 2: Specific drives with selected props -->
+                    <pre><copy-button element-id="getDriveInfoSelectProps"></copy-button><code id="getDriveInfoSelectProps">
 # Show only C: and D:, with selected properties
 Get-PSDrive -PSProvider FileSystem |
     Where-Object { $_.Name -in 'C','D' } |
@@ -505,55 +527,373 @@ Get-PSDrive -PSProvider FileSystem |
         @{Name='Used (GB)';Expression={'{0:N2}' -f ($_.Used / 1GB)}},
         @{Name='Free (GB)';Expression={'{0:N2}' -f ($_.Free / 1GB)}}</code></pre>
 
-                <!-- Example 3: Sort by free space -->
-                <pre><copy-button element-id="getDriveInfoSorted"></copy-button><code id="getDriveInfoSorted">
+                    <!-- Example 3: Sort by free space -->
+                    <pre><copy-button element-id="getDriveInfoSorted"></copy-button><code id="getDriveInfoSorted">
 # List all drives sorted by free space (ascending)
 Get-PSDrive -PSProvider FileSystem |
     Sort-Object Free |
     Select-Object Name,
         @{Name='Used (GB)';Expression={'{0:N2}' -f ($_.Used / 1GB)}},
         @{Name='Free (GB)';Expression={'{0:N2}' -f ($_.Free / 1GB)}}</code></pre>
-            </li>
-        </ul>
-        <p>
-            Each of these examples can be used locally or extended to remote systems by leveraging
-            <code class="inline-code">Invoke-Command</code>
-            or other remoting options, making PowerShell an essential tool in your desktop support toolkit.
-        </p>
-    </section>
-</main>
-<script>
-    class CopyButton extends HTMLElement {
-        constructor() {
-            super();
-            // Attribute storage
-            this._elementId=null;
-        }
+                </li>
+            </ul>
+            <p>
+                Each of these examples can be used locally or extended to remote systems by leveraging
+                <code class="inline-code">Invoke-Command</code>
+                or other remoting options, making PowerShell an essential tool in your desktop support toolkit.
+            </p>
+        </section>
+        <section id="custom-scripts">
+            <h2>Custom Scripts / Implementations</h2>
+            <p>
+                These are drop-in PowerShell functions used in this cheat sheet. Use the Copy button to copy the full
+                implementation
+                into your clipboard, then paste into a PowerShell session (or a .ps1) and run the examples below.
+            </p>
 
-        // Observe 'element-id' attribute
-        static get observedAttributes() {
-            return ["element-id"];
-        }
+            <ul>
+                <li>
+                    <strong>Remove-TempFiles</strong><br>
+                    Removes contents of common temp locations (e.g., <code class="inline-code">C:\Temp</code> and
+                    <code class="inline-code">C:\Windows\Temp</code>) and writes a log + transcript to the log
+                    directory.
+                    <span class="block-margin"><strong class="section-label">How to use:</strong></span>
+                    <ul>
+                        <li>Recommended dry run first: run with <code class="inline-code">-WhatIf</code> to confirm what
+                            would be deleted.</li>
+                        <li>Typical usage: specify <code class="inline-code">-DriveLetter</code> and optionally <code
+                                class="inline-code">-LogDir</code>.</li>
+                        <li>Run elevated if targeting protected paths like <code
+                                class="inline-code">C:\Windows\Temp</code>.</li>
+                    </ul>
 
-        // Getter for 'element-id' property
-        get elementId() {
-            return this._elementId;
-        }
+                    <span class="block-margin"><strong class="section-label">Examples:</strong></span>
+                    <pre>
+        <copy-button element-id="exRemoveTempWhatIf"></copy-button>
+        <code id="exRemoveTempWhatIf">Remove-TempFiles -DriveLetter C -LogDir C:\WsMgmt\Logs -WhatIf</code>
+      </pre>
+                    <pre>
+        <copy-button element-id="exRemoveTempRun"></copy-button>
+        <code id="exRemoveTempRun">Remove-TempFiles -DriveLetter C -LogDir C:\WsMgmt\Logs -Confirm</code>
+      </pre>
 
-        // Setter for 'element-id' property
-        set elementId(value) {
-            this._elementId=value;
-            if (value) {
-                this.setAttribute("element-id", value); // Reflect to HTML attribute
-            } else {
-                this.removeAttribute("element-id");
+                    <!-- Hidden source used by copy button -->
+                    <template id="implRemoveTempFiles">
+                        function Remove-TempFiles {
+                            [CmdletBinding(SupportsShouldProcess)]
+                            param(
+                                [string[]]$ComputerName = @('localhost'),
+                                [System.Management.Automation.PSCredential]$Credential,
+                                [string]$DriveLetter = 'C',
+                                [switch]$Delete,
+                                [switch]$ConfirmDelete,
+                                [string]$LogDir = 'C:\WsMgmt\Logs'
+                            )
+                            New-Item -ItemType Directory -Path $LogDir -Force | Out-Null
+                            $stamp = Get-Date -Format 'yyyyMMdd_HHmmss'
+                            $logPath = Join-Path $LogDir "ProfileCleanup_$($env:COMPUTERNAME)_$stamp.log"
+                            $transcriptPath = Join-Path $LogDir "ProfileCleanup_$($env:COMPUTERNAME)_$stamp.transcript.log"
+
+                            function Write-Log {
+                                param(
+                                    [Parameter(Mandatory)] [string] $Message,
+                                    [ValidateSet('INFO', 'WARN', 'ERROR')] [string] $Level = 'INFO'
+                                )
+
+                                $line = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') [$Level] $Message"
+                                $line | Write-Host
+                                Add-Content -Path $logPath -Value $line
+                            }
+                            Start-Transcript -Path $transcriptPath -Append | Out-Null
+
+                            try {
+                                $tempPaths = @(
+                                    "$DriveLetter`:\Temp",
+                                    "$DriveLetter`:\Windows\Temp"
+                                )
+
+                                Write-Log "Starting temporary files removal process."
+                                Write-Log "Log file: $logPath"
+                                Write-Log "Transcript: $transcriptPath"
+
+                                foreach ($path in $tempPaths) {
+                                    if (Test-Path $path) {
+                                        Write-Log "Processing: $path"
+                                        if ($PSCmdlet.ShouldProcess($path, "Remove all files and subdirectories")) {
+                                            Remove-Item -Path "$path\*" -Recurse -Force -ErrorAction Stop
+                                            Write-Log "Removed contents of: $path"
+                                        }
+                                        else {
+                                            Write-Log "WHATIF/CONFIRM: Would remove contents of: $path"
+                                        }
+                                    }
+                                }
+                            }
+                            catch {
+                                Write-Log -Level 'ERROR' "An error occurred: $_"
+                            }
+                            finally {
+                                Write-Log "Temporary files removal process completed."
+                                Stop-Transcript | Out-Null
+                            }
+                        }
+                    </template>
+
+                    <pre>
+        <copy-button element-id="implRemoveTempFiles"></copy-button>
+        <code>Copy implementation (hidden)</code>
+      </pre>
+                </li>
+
+                <li>
+                    <strong>Invoke-ProfileCleanup</strong><br>
+                    Iterates removable user profiles (not Special, not Loaded) and removes oldest-first until the drive
+                    meets a target
+                    free-space threshold, logging actions and using <code class="inline-code">ShouldProcess</code> for
+                    safety.
+                    <span class="block-margin"><strong class="section-label">How to use:</strong></span>
+                    <ul>
+                        <li>Start with <code class="inline-code">-WhatIf</code> to see which profiles would be removed.
+                        </li>
+                        <li>Adjust <code class="inline-code">-TargetFreeGB</code> based on your environment.</li>
+                        <li>Do not run while users are actively logging in/out (profiles may become Loaded mid-run).
+                        </li>
+                    </ul>
+
+                    <span class="block-margin"><strong class="section-label">Examples:</strong></span>
+                    <pre>
+        <copy-button element-id="exProfileCleanupWhatIf"></copy-button>
+        <code id="exProfileCleanupWhatIf">Invoke-ProfileCleanup -TargetFreeGB 75 -DriveLetter C -LogDir C:\WsMgmt\Logs -WhatIf</code>
+      </pre>
+                    <pre>
+        <copy-button element-id="exProfileCleanupRun"></copy-button>
+        <code id="exProfileCleanupRun">Invoke-ProfileCleanup -TargetFreeGB 75 -DriveLetter C -LogDir C:\WsMgmt\Logs -Confirm</code>
+      </pre>
+
+                    <template id="implInvokeProfileCleanup">
+                        function Invoke-ProfileCleanup {
+                            [CmdletBinding(SupportsShouldProcess)]
+                            param(
+                                [int]    $TargetFreeGB = 75,
+                                [string] $DriveLetter  = 'C',
+                                [string] $LogDir       = 'C:\WsMgmt\Logs'
+                            )
+
+                            function Get-FreeGB([string]$Letter) {
+                                (Get-PSDrive -Name $Letter).Free / 1GB
+                            }
+
+                            # Prepare log paths
+                            New-Item -ItemType Directory -Path $LogDir -Force | Out-Null
+                            $stamp          = Get-Date -Format 'yyyyMMdd_HHmmss'
+                            $logPath        = Join-Path $LogDir "ProfileCleanup_$($env:COMPUTERNAME)_$stamp.log"
+                            $transcriptPath = Join-Path $LogDir "ProfileCleanup_$($env:COMPUTERNAME)_$stamp.transcript.log"
+
+                            function Write-Log {
+                                param(
+                                [Parameter(Mandatory)] [string] $Message,
+                                [ValidateSet('INFO','WARN','ERROR')] [string] $Level = 'INFO'
+                                )
+
+                                $line = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') [$Level] $Message"
+                                $line | Write-Host
+                                Add-Content -Path $logPath -Value $line
+                            }
+
+                            # Notify user of locations immediately
+                            Write-Host "Log file: $logPath"
+                            Write-Host "Transcript: $transcriptPath"
+
+                            Start-Transcript -Path $transcriptPath -Append | Out-Null
+
+                            try {
+                                Write-Log "Starting profile cleanup. Target free space: $TargetFreeGB GB on drive $DriveLetter`:."
+                                Write-Log "Log file: $logPath"
+                                Write-Log "Transcript: $transcriptPath"
+                                Write-Log "WhatIfPreference (inside function scope): $WhatIfPreference"
+
+                                $startFree = [math]::Round((Get-FreeGB $DriveLetter), 2)
+                                Write-Log "Initial free space: $startFree GB"
+
+                                $profileRoot = "$DriveLetter`:\Users"
+
+                                # Oldest first
+                                $profileFolders =
+                                Get-ChildItem -Path $profileRoot -Directory -Force |
+                                Sort-Object LastWriteTime
+
+                                # Query once
+                                $profiles = Get-CimInstance -ClassName Win32_UserProfile
+
+                                foreach ($folder in $profileFolders) {
+                                $free = [math]::Round((Get-FreeGB $DriveLetter), 2)
+                                if ($free -ge $TargetFreeGB) {
+                                    Write-Log "Reached target free space ($free GB >= $TargetFreeGB GB). Stopping."
+                                    break
+                                }
+
+                                $p = $profiles | Where-Object {
+                                    $_.LocalPath -eq $folder.FullName -and -not $_.Special -and -not $_.Loaded
+                                }
+
+                                if ($null -eq $p) {
+                                    Write-Log "Skipping (no removable Win32_UserProfile match, or Special/Loaded): $($folder.FullName) (LastWrite: $($folder.LastWriteTime))" "WARN"
+                                    continue
+                                }
+
+                                $target = $p.LocalPath
+                                $action = "Remove user profile (SID: $($p.SID)); free-space target: $TargetFreeGB GB"
+
+                                # Master -WhatIf / -Confirm handling
+                                if ($PSCmdlet.ShouldProcess($target, $action)) {
+                                    Write-Log "Removing profile: $target (LastWrite: $($folder.LastWriteTime), SID: $($p.SID))"
+                                    Remove-CimInstance -InputObject $p -Confirm:$false
+
+                                    $after = [math]::Round((Get-FreeGB $DriveLetter), 2)
+                                    Write-Log "Removed. Free space now: $after GB"
+                                }
+                                else {
+                                    Write-Log "WHATIF/CONFIRM: Would remove profile: $target (LastWrite: $($folder.LastWriteTime), SID: $($p.SID))"
+                                }
+                                }
+
+                                $endFree = [math]::Round((Get-FreeGB $DriveLetter), 2)
+                                Write-Log "Done. Final free space: $endFree GB"
+                            }
+                            catch {
+                                Write-Log "Unhandled error: $($_.Exception.Message)" "ERROR"
+                                throw
+                            }
+                            finally {
+                                Stop-Transcript | Out-Null
+                                Write-Log "Finished. Review log at: $logPath and transcript at: $transcriptPath"
+                            }
+                            }
+                    </template>
+
+                    <pre>
+        <copy-button element-id="implInvokeProfileCleanup"></copy-button>
+        <code>Copy implementation (hidden)</code>
+      </pre>
+                </li>
+
+                <li>
+                    <strong>Start-CleanupImage</strong><br>
+                    Performs component store cleanup (DISM StartComponentCleanup) and volume optimization, with logging
+                    + transcript and
+                    <code class="inline-code">ShouldProcess</code> support.
+                    <span class="block-margin"><strong class="section-label">How to use:</strong></span>
+                    <ul>
+                        <li>Run elevated.</li>
+                        <li>Use <code class="inline-code">-WhatIf</code> first if calling it from a broader automation
+                            wrapper.</li>
+                        <li>Plan for runtime: DISM cleanup can take time on older systems.</li>
+                    </ul>
+
+                    <span class="block-margin"><strong class="section-label">Examples:</strong></span>
+                    <pre>
+        <copy-button element-id="exCleanupImage"></copy-button>
+        <code id="exCleanupImage">Start-CleanupImage -LogDir C:\WsMgmt\Logs -Confirm</code>
+      </pre>
+
+                    <template id="implStartCleanupImage">
+                        function Start-CleanupImage {
+                            [CmdletBinding(SupportsShouldProcess)]
+                            param(
+                            [string]$LogDir = 'C:\WsMgmt\Logs'
+                            )
+                            New-Item -ItemType Directory -Path $LogDir -Force | Out-Null
+                            $stamp = Get-Date -Format 'yyyyMMdd_HHmmss'
+                            $logPath = Join-Path $LogDir "ProfileCleanup_$($env:COMPUTERNAME)_$stamp.log"
+                            $transcriptPath = Join-Path $LogDir "ProfileCleanup_$($env:COMPUTERNAME)_$stamp.transcript.log"
+
+                            function Write-Log {
+                                param(
+                                    [Parameter(Mandatory)] [string] $Message,
+                                    [ValidateSet('INFO', 'WARN', 'ERROR')] [string] $Level = 'INFO'
+                                )
+
+                                $line = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') [$Level] $Message"
+                                $line | Write-Host
+                                Add-Content -Path $logPath -Value $line
+                            }
+                            Start-Transcript -Path $transcriptPath -Append | Out-Null
+
+                            try {
+                                Write-Log "Starting image cleanup process."
+                                Write-Log "Log file: $logPath"
+                                Write-Log "Transcript: $transcriptPath"
+
+                                if ($PSCmdlet.ShouldProcess("System Image", "Perform cleanup")) {
+                                    $Drive = (Get-CimInstance -ClassName Win32_OperatingSystem).SystemDrive.TrimEnd(':')
+                                    Write-Log "Optimizing volume $Drive"
+                                    Optimize-Volume -DriveLetter $Drive -ErrorAction SilentlyContinue
+                                    Write-Log "Volume optimization completed"
+                                    Write-Log "Running DISM component cleanup"
+                                    Dism.exe /Online /Cleanup-Image /StartComponentCleanup /Quiet | Out-Null
+                                    Write-Log "DISM component cleanup completed"
+                                }
+                                else {
+                                    Write-Log "WHATIF/CONFIRM: Would perform image cleanup"
+                                }
+                            }
+                            catch {
+                                Write-Log -Level 'ERROR' "An error occurred: $_"
+                            }
+                            finally {
+                                Write-Log "Image cleanup process completed."
+                                Stop-Transcript | Out-Null
+                            }
+                        }
+                    </template>
+
+                    <pre>
+        <copy-button element-id="implStartCleanupImage"></copy-button>
+        <code>Copy implementation (hidden)</code>
+      </pre>
+                </li>
+            </ul>
+
+            <p class="note">
+                <strong>Tip:</strong> The Copy button uses the Clipboard API (works best over HTTPS / secure context),
+                with a fallback
+                method for environments where clipboard access is restricted. [web:6]
+            </p>
+        </section>
+
+    </main>
+    <script>
+        class CopyButton extends HTMLElement {
+            constructor() {
+                super();
+                // Attribute storage
+                this._elementId = null;
             }
-        }
 
-        // Fires when the element is added to the DOM
-        connectedCallback() {
-            const template=document.createElement("template");
-            template.innerHTML=`<style>button {
+            // Observe 'element-id' attribute
+            static get observedAttributes() {
+                return ["element-id"];
+            }
+
+            // Getter for 'element-id' property
+            get elementId() {
+                return this._elementId;
+            }
+
+            // Setter for 'element-id' property
+            set elementId(value) {
+                this._elementId = value;
+                if (value) {
+                    this.setAttribute("element-id", value); // Reflect to HTML attribute
+                } else {
+                    this.removeAttribute("element-id");
+                }
+            }
+
+            // Fires when the element is added to the DOM
+            connectedCallback() {
+                const template = document.createElement("template");
+                template.innerHTML = `<style>button {
                     position: absolute;
                     align-items: center;
                     top: 10px;
@@ -584,120 +924,124 @@ Get-PSDrive -PSProvider FileSystem |
                     height: 16px;
                     fill: white; /* Match icon color to text color */
                 }</style><button><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><!--!Font Awesome Free v7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path d="M288 64C252.7 64 224 92.7 224 128L224 384C224 419.3 252.7 448 288 448L480 448C515.3 448 544 419.3 544 384L544 183.4C544 166 536.9 149.3 524.3 137.2L466.6 81.8C454.7 70.4 438.8 64 422.3 64L288 64zM160 192C124.7 192 96 220.7 96 256L96 512C96 547.3 124.7 576 160 576L352 576C387.3 576 416 547.3 416 512L416 496L352 496L352 512L160 512L160 256L176 256L176 192L160 192z"/></svg></button>`;
-            const shadow=this.attachShadow({mode: "open"});
-            shadow.appendChild(template.content.cloneNode(true));
+                const shadow = this.attachShadow({ mode: "open" });
+                shadow.appendChild(template.content.cloneNode(true));
 
-            const button=shadow.querySelector("button");
-            button.addEventListener("click", this.copyTextFromElement.bind(this));
-        }
-
-        /**
-         * Called when an observed attribute changes.
-         */
-        attributeChangedCallback(name, oldValue, newValue) {
-            if (name === "element-id") {
-                this._elementId=newValue;
+                const button = shadow.querySelector("button");
+                button.addEventListener("click", this.copyTextFromElement.bind(this));
             }
-        }
 
-        /**
-         * Copies the text content of the target element to the clipboard, with fallback for restricted environments.
-         */
-        copyTextFromElement() {
-            const elementId = this.elementId;
-            if (!elementId) {
-                console.error("Attribute 'element-id' is required.");
-                return;
+            /**
+             * Called when an observed attribute changes.
+             */
+            attributeChangedCallback(name, oldValue, newValue) {
+                if (name === "element-id") {
+                    this._elementId = newValue;
+                }
             }
-            const targetElement = document.getElementById(elementId);
-            if (targetElement) {
-                const textToCopy = targetElement.textContent.trim();
-                if (textToCopy) {
-                    // Try modern clipboard API first
-                    if (navigator.clipboard && window.isSecureContext) {
-                        navigator.clipboard
-                            .writeText(textToCopy)
-                            .then(() => this.showToast("Copied to clipboard!"))
-                            .catch(() => this.fallbackCopyText(textToCopy));
+
+            /**
+             * Copies the text content of the target element to the clipboard, with fallback for restricted environments.
+             */
+            copyTextFromElement() {
+                const elementId = this.elementId;
+                if (!elementId) {
+                    console.error("Attribute 'element-id' is required.");
+                    return;
+                }
+                const targetElement = document.getElementById(elementId);
+                if (targetElement) {
+                    const textToCopy =
+                        targetElement.tagName === "TEMPLATE"
+                        ? targetElement.content.textContent.trim()
+                        : targetElement.textContent.trim();
+                    if (textToCopy) {
+                        // Try modern clipboard API first
+                        if (navigator.clipboard && window.isSecureContext) {
+                            navigator.clipboard
+                                .writeText(textToCopy)
+                                .then(() => this.showToast("Copied to clipboard!"))
+                                .catch(() => this.fallbackCopyText(textToCopy));
+                        } else {
+                            this.fallbackCopyText(textToCopy);
+                        }
                     } else {
-                        this.fallbackCopyText(textToCopy);
+                        console.error("The target element has no text content to copy.");
                     }
                 } else {
-                    console.error("The target element has no text content to copy.");
+                    console.error(`No element found with id "${elementId}".`);
                 }
-            } else {
-                console.error(`No element found with id "${elementId}".`);
-            }
-        }
-
-        /**
-         * Fallback copy method using a temporary textarea and execCommand.
-         */
-        fallbackCopyText(textToCopy) {
-            const textarea = document.createElement("textarea");
-            textarea.value = textToCopy;
-            textarea.setAttribute("readonly", "");
-            textarea.style.position = "absolute";
-            textarea.style.left = "-9999px";
-            document.body.appendChild(textarea);
-            textarea.select();
-            try {
-                document.execCommand("copy");
-                this.showToast("Copied to clipboard!");
-            } catch (err) {
-                alert("Copy failed. Please copy manually.");
-            }
-            document.body.removeChild(textarea);
-        }
-
-        showToast(message) {
-            let toastContainer=document.getElementById("toast-container");
-
-            // Create a toast container if it doesn't exist
-            if (!toastContainer) {
-                toastContainer=document.createElement("div");
-                toastContainer.id="toast-container";
-                toastContainer.style.position="fixed";
-                toastContainer.style.bottom="20px";
-                toastContainer.style.right="20px";
-                toastContainer.style.zIndex="1000";
-                toastContainer.style.display="flex";
-                toastContainer.style.flexDirection="column";
-                toastContainer.style.gap="10px";
-                document.body.appendChild(toastContainer);
             }
 
-            // Create a glass effect toast element
-            const toast=document.createElement("div");
-            toast.textContent=message;
-            toast.style.background="rgba(255, 255, 255, 0.2)"; // Transparent background
-            toast.style.backdropFilter="blur(10px) saturate(150%)"; // Glass effect
-            toast.style.border="1px solid rgba(255, 255, 255, 0.3)"; // Border for definition
-            toast.style.boxShadow="0px 8px 15px rgba(0, 0, 0, 0.2)";
-            toast.style.color="#FFFFFF";
-            toast.style.padding="15px 20px";
-            toast.style.borderRadius="10px";
-            toast.style.fontSize="14px";
-            toast.style.fontFamily="'Roboto', sans-serif";
-            toast.style.transition="opacity 0.5s ease, transform 0.3s ease";
-            toast.style.opacity="1";
-            toast.style.transform="translateY(0px)";
+            /**
+             * Fallback copy method using a temporary textarea and execCommand.
+             */
+            fallbackCopyText(textToCopy) {
+                const textarea = document.createElement("textarea");
+                textarea.value = textToCopy;
+                textarea.setAttribute("readonly", "");
+                textarea.style.position = "absolute";
+                textarea.style.left = "-9999px";
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand("copy");
+                    this.showToast("Copied to clipboard!");
+                } catch (err) {
+                    alert("Copy failed. Please copy manually.");
+                }
+                document.body.removeChild(textarea);
+            }
 
-            // Append toast to the container
-            toastContainer.appendChild(toast);
+            showToast(message) {
+                let toastContainer = document.getElementById("toast-container");
 
-            // Automatically remove the toast after a delay
-            setTimeout(() => {
-                toast.style.opacity="0"; // Fade out
-                toast.style.transform="translateY(-20px)"; // Float upward effect
-                toast.addEventListener("transitionend", () => toast.remove());
-            }, 3000);
+                // Create a toast container if it doesn't exist
+                if (!toastContainer) {
+                    toastContainer = document.createElement("div");
+                    toastContainer.id = "toast-container";
+                    toastContainer.style.position = "fixed";
+                    toastContainer.style.bottom = "20px";
+                    toastContainer.style.right = "20px";
+                    toastContainer.style.zIndex = "1000";
+                    toastContainer.style.display = "flex";
+                    toastContainer.style.flexDirection = "column";
+                    toastContainer.style.gap = "10px";
+                    document.body.appendChild(toastContainer);
+                }
+
+                // Create a glass effect toast element
+                const toast = document.createElement("div");
+                toast.textContent = message;
+                toast.style.background = "rgba(255, 255, 255, 0.2)"; // Transparent background
+                toast.style.backdropFilter = "blur(10px) saturate(150%)"; // Glass effect
+                toast.style.border = "1px solid rgba(255, 255, 255, 0.3)"; // Border for definition
+                toast.style.boxShadow = "0px 8px 15px rgba(0, 0, 0, 0.2)";
+                toast.style.color = "#FFFFFF";
+                toast.style.padding = "15px 20px";
+                toast.style.borderRadius = "10px";
+                toast.style.fontSize = "14px";
+                toast.style.fontFamily = "'Roboto', sans-serif";
+                toast.style.transition = "opacity 0.5s ease, transform 0.3s ease";
+                toast.style.opacity = "1";
+                toast.style.transform = "translateY(0px)";
+
+                // Append toast to the container
+                toastContainer.appendChild(toast);
+
+                // Automatically remove the toast after a delay
+                setTimeout(() => {
+                    toast.style.opacity = "0"; // Fade out
+                    toast.style.transform = "translateY(-20px)"; // Float upward effect
+                    toast.addEventListener("transitionend", () => toast.remove());
+                }, 3000);
+            }
+
         }
 
-    }
-
-    // Define the custom element
-    customElements.define("copy-button", CopyButton);
-</script>
+        // Define the custom element
+        customElements.define("copy-button", CopyButton);
+    </script>
 </body>
+
 </html>

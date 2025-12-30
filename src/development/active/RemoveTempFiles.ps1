@@ -55,6 +55,4 @@ function Remove-TempFiles {
         Write-Log "Temporary files removal process completed."
         Stop-Transcript | Out-Null
     }
-
- 
 }
