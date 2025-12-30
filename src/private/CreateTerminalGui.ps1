@@ -34,12 +34,11 @@ PROCESS BLOCK
     1. Initialize the Terminal GUI application.
     2. Return a new instance of Terminal.Gui.Window.
 #>
-function Initialize-TerminalGuiApp {
+function Initialize {
     [CmdletBinding()]
     param()
 
     begin {
-        $module = Get-Module -Name Microsoft.PowerShell.ConsoleGuiTools -ErrorAction SilentlyContinue
         [version]$latestVersion = $(Find-Module -Name Microsoft.PowerShell.ConsoleGuiTools).Version
         [version]$installedVersion = $module.Version
 
@@ -61,6 +60,9 @@ function Initialize-TerminalGuiApp {
 }
 
 function Initialize-TerminalGuiWindow{
+    [CmdletBinding()]
+    param()
+    Initialize
     return [Terminal.Gui.Window]::new()
 }
 
@@ -74,6 +76,46 @@ function Set-GuiWindowTitle {
         [Terminal.Gui.Window]$GuiWindow
     )
     $GuiWindow.Title = $Title
+}
+
+function Set-GuiWindowConfig {
+    [CmdletBinding()]
+    param (
+        # Gui Window
+        [Parameter(Mandatory, ValueFromPipeline)]
+        [Terminal.Gui.Window]
+        $GuiWindow,
+
+        # Width
+        [Parameter()]
+        [int]
+        $Width,
+
+        # Height
+        [Parameter()]
+        [int]
+        $Height,
+
+        [Parameter()]
+        [string]
+        $Title,
+
+        [Parameter()]
+        [string]
+        $StatusBarText,
+
+        [Parameter()]
+        [string]
+        $BackgroundColor
+    )
+    $GuiWindow.Width = $Width
+    $GuiWindow.Height = $Height
+    if ($Title) {
+        $GuiWindow.Title = $Title
+    }
+    if ($BackgroundColor) {
+        [Terminal.Gui.Colors]::Base.Normal = [Terminal.Gui.Application]::Driver.MakeAttribute([Terminal.Gui.Color]::Green, [Terminal.Gui.Color]::Black)
+    }
 }
 
 
@@ -106,10 +148,27 @@ function Show-TerminalGuiWindow {
         [Parameter(Mandatory=$true)]
         [Terminal.Gui.Window]$GuiWindow
     )
+    $GuiWindow.Add(
+        [Terminal.Gui.Label]::new("Press 'Esc' or 'Ctrl+Q' to exit.")
+    )
+
+    # $GuiWindow.add_KeyPress({
+    #     param($e)
+    #     try {
+    #         if ($e.KeyEvent.Key -eq [Terminal.Gui.Key]::Esc -or $e.KeyEvent.Key -eq [Terminal.Gui.Key]::CtrlQ -bor [Terminal.Gui.Key]::CtrlMask) {
+    #             [Terminal.Gui.Application]::RequestStop()
+    #             $e.Handled = $true
+    #         }
+    #     } catch [System.Management.Automation.ExtendedTypeSystemException] {}
+    # })
+
+    # Define a shortcut to exit the application
+[Terminal.Gui.Application]::AddKeyBindings('Quit', [Terminal.Gui.Configuration.Configuration.KeyMap.Quit])
 
     # Adding the window to the application
     [Terminal.Gui.Application]::Top.Add($GuiWindow)
     
     # Running the application
     [Terminal.Gui.Application]::Run()
+    [Terminal.Gui.Application]::Shutdown()
 }

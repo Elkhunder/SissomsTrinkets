@@ -1,5 +1,6 @@
 function Get-DellUpdateStatus {
     param(
+        [string]$ComputerName,
         [string]$DownloadUrl = "https://dl.dell.com/FOLDER13309338M/2/Dell-Command-Update-Application_Y5VJV_WIN64_5.5.0_A00_01.EXE",
         [pscredential]$Credential,
         [DellCommandCategory[]]$Categories,

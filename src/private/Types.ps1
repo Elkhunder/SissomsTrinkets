@@ -4,6 +4,18 @@ enum DellCommandStatus {
     Failed
 }
 
+enum DellCommandCategory {
+    BIOS
+    Chipset
+    Network
+    Video
+    Audio
+    Storage
+    Application
+    Security
+    Other
+}
+
 class DellCommandResult {
     [string]$ComputerName
     [bool]$Exists
