@@ -247,6 +247,14 @@
             margin-top: 1rem;
             margin-bottom: 0.5rem;
         }
+
+        .script-header{
+            display: flex;
+            position: relative;
+            align-items: center;       /* align title + button vertically */
+            gap: .5rem;                /* space between title and button */
+            padding-bottom: .6rem;     /* space below for separation */
+        }
     </style>
 </head>
 
@@ -547,319 +555,279 @@ Get-PSDrive -PSProvider FileSystem |
             <h2>Custom Scripts / Implementations</h2>
             <p>
                 These are drop-in PowerShell functions used in this cheat sheet. Use the Copy button to copy the full
-                implementation
-                into your clipboard, then paste into a PowerShell session (or a .ps1) and run the examples below.
+                implementation into your clipboard, then paste into a PowerShell session (or a .ps1) and run the examples below.
             </p>
+            <br>
 
+            <!-- Remove-TempFiles -->
+            <div class="script-header"">
+                <strong>Remove-TempFiles</strong><br>
+                <copy-button element-id="implRemoveTempFiles" tooltip="Copy Remove-TempFiles implementation"></copy-button>
+            </div>
+            <div style="padding-bottom: .5rem;">
+                Removes contents of common temp locations (e.g., <code class="inline-code">C:\Temp</code> and
+                <code class="inline-code">C:\Windows\Temp</code>) and writes a log + transcript to the log directory.
+            </div>
+            <span class="block-margin"><strong class="section-label">How to use:</strong></span>
             <ul>
-                <li>
-                    <strong>Remove-TempFiles</strong><br>
-                    Removes contents of common temp locations (e.g., <code class="inline-code">C:\Temp</code> and
-                    <code class="inline-code">C:\Windows\Temp</code>) and writes a log + transcript to the log
-                    directory.
-                    <span class="block-margin"><strong class="section-label">How to use:</strong></span>
-                    <ul>
-                        <li>Recommended dry run first: run with <code class="inline-code">-WhatIf</code> to confirm what
-                            would be deleted.</li>
-                        <li>Typical usage: specify <code class="inline-code">-DriveLetter</code> and optionally <code
-                                class="inline-code">-LogDir</code>.</li>
-                        <li>Run elevated if targeting protected paths like <code
-                                class="inline-code">C:\Windows\Temp</code>.</li>
-                    </ul>
-
-                    <span class="block-margin"><strong class="section-label">Examples:</strong></span>
-                    <pre>
-        <copy-button element-id="exRemoveTempWhatIf"></copy-button>
-        <code id="exRemoveTempWhatIf">Remove-TempFiles -DriveLetter C -LogDir C:\WsMgmt\Logs -WhatIf</code>
-      </pre>
-                    <pre>
-        <copy-button element-id="exRemoveTempRun"></copy-button>
-        <code id="exRemoveTempRun">Remove-TempFiles -DriveLetter C -LogDir C:\WsMgmt\Logs -Confirm</code>
-      </pre>
-
-                    <!-- Hidden source used by copy button -->
-                    <template id="implRemoveTempFiles">
-                        function Remove-TempFiles {
-                            [CmdletBinding(SupportsShouldProcess)]
-                            param(
-                                [string[]]$ComputerName = @('localhost'),
-                                [System.Management.Automation.PSCredential]$Credential,
-                                [string]$DriveLetter = 'C',
-                                [switch]$Delete,
-                                [switch]$ConfirmDelete,
-                                [string]$LogDir = 'C:\WsMgmt\Logs'
-                            )
-                            New-Item -ItemType Directory -Path $LogDir -Force | Out-Null
-                            $stamp = Get-Date -Format 'yyyyMMdd_HHmmss'
-                            $logPath = Join-Path $LogDir "ProfileCleanup_$($env:COMPUTERNAME)_$stamp.log"
-                            $transcriptPath = Join-Path $LogDir "ProfileCleanup_$($env:COMPUTERNAME)_$stamp.transcript.log"
-
-                            function Write-Log {
-                                param(
-                                    [Parameter(Mandatory)] [string] $Message,
-                                    [ValidateSet('INFO', 'WARN', 'ERROR')] [string] $Level = 'INFO'
-                                )
-
-                                $line = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') [$Level] $Message"
-                                $line | Write-Host
-                                Add-Content -Path $logPath -Value $line
-                            }
-                            Start-Transcript -Path $transcriptPath -Append | Out-Null
-
-                            try {
-                                $tempPaths = @(
-                                    "$DriveLetter`:\Temp",
-                                    "$DriveLetter`:\Windows\Temp"
-                                )
-
-                                Write-Log "Starting temporary files removal process."
-                                Write-Log "Log file: $logPath"
-                                Write-Log "Transcript: $transcriptPath"
-
-                                foreach ($path in $tempPaths) {
-                                    if (Test-Path $path) {
-                                        Write-Log "Processing: $path"
-                                        if ($PSCmdlet.ShouldProcess($path, "Remove all files and subdirectories")) {
-                                            Remove-Item -Path "$path\*" -Recurse -Force -ErrorAction Stop
-                                            Write-Log "Removed contents of: $path"
-                                        }
-                                        else {
-                                            Write-Log "WHATIF/CONFIRM: Would remove contents of: $path"
-                                        }
-                                    }
-                                }
-                            }
-                            catch {
-                                Write-Log -Level 'ERROR' "An error occurred: $_"
-                            }
-                            finally {
-                                Write-Log "Temporary files removal process completed."
-                                Stop-Transcript | Out-Null
-                            }
-                        }
-                    </template>
-
-                    <pre>
-        <copy-button element-id="implRemoveTempFiles"></copy-button>
-        <code>Copy implementation (hidden)</code>
-      </pre>
-                </li>
-
-                <li>
-                    <strong>Invoke-ProfileCleanup</strong><br>
-                    Iterates removable user profiles (not Special, not Loaded) and removes oldest-first until the drive
-                    meets a target
-                    free-space threshold, logging actions and using <code class="inline-code">ShouldProcess</code> for
-                    safety.
-                    <span class="block-margin"><strong class="section-label">How to use:</strong></span>
-                    <ul>
-                        <li>Start with <code class="inline-code">-WhatIf</code> to see which profiles would be removed.
-                        </li>
-                        <li>Adjust <code class="inline-code">-TargetFreeGB</code> based on your environment.</li>
-                        <li>Do not run while users are actively logging in/out (profiles may become Loaded mid-run).
-                        </li>
-                    </ul>
-
-                    <span class="block-margin"><strong class="section-label">Examples:</strong></span>
-                    <pre>
-        <copy-button element-id="exProfileCleanupWhatIf"></copy-button>
-        <code id="exProfileCleanupWhatIf">Invoke-ProfileCleanup -TargetFreeGB 75 -DriveLetter C -LogDir C:\WsMgmt\Logs -WhatIf</code>
-      </pre>
-                    <pre>
-        <copy-button element-id="exProfileCleanupRun"></copy-button>
-        <code id="exProfileCleanupRun">Invoke-ProfileCleanup -TargetFreeGB 75 -DriveLetter C -LogDir C:\WsMgmt\Logs -Confirm</code>
-      </pre>
-
-                    <template id="implInvokeProfileCleanup">
-                        function Invoke-ProfileCleanup {
-                            [CmdletBinding(SupportsShouldProcess)]
-                            param(
-                                [int]    $TargetFreeGB = 75,
-                                [string] $DriveLetter  = 'C',
-                                [string] $LogDir       = 'C:\WsMgmt\Logs'
-                            )
-
-                            function Get-FreeGB([string]$Letter) {
-                                (Get-PSDrive -Name $Letter).Free / 1GB
-                            }
-
-                            # Prepare log paths
-                            New-Item -ItemType Directory -Path $LogDir -Force | Out-Null
-                            $stamp          = Get-Date -Format 'yyyyMMdd_HHmmss'
-                            $logPath        = Join-Path $LogDir "ProfileCleanup_$($env:COMPUTERNAME)_$stamp.log"
-                            $transcriptPath = Join-Path $LogDir "ProfileCleanup_$($env:COMPUTERNAME)_$stamp.transcript.log"
-
-                            function Write-Log {
-                                param(
-                                [Parameter(Mandatory)] [string] $Message,
-                                [ValidateSet('INFO','WARN','ERROR')] [string] $Level = 'INFO'
-                                )
-
-                                $line = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') [$Level] $Message"
-                                $line | Write-Host
-                                Add-Content -Path $logPath -Value $line
-                            }
-
-                            # Notify user of locations immediately
-                            Write-Host "Log file: $logPath"
-                            Write-Host "Transcript: $transcriptPath"
-
-                            Start-Transcript -Path $transcriptPath -Append | Out-Null
-
-                            try {
-                                Write-Log "Starting profile cleanup. Target free space: $TargetFreeGB GB on drive $DriveLetter`:."
-                                Write-Log "Log file: $logPath"
-                                Write-Log "Transcript: $transcriptPath"
-                                Write-Log "WhatIfPreference (inside function scope): $WhatIfPreference"
-
-                                $startFree = [math]::Round((Get-FreeGB $DriveLetter), 2)
-                                Write-Log "Initial free space: $startFree GB"
-
-                                $profileRoot = "$DriveLetter`:\Users"
-
-                                # Oldest first
-                                $profileFolders =
-                                Get-ChildItem -Path $profileRoot -Directory -Force |
-                                Sort-Object LastWriteTime
-
-                                # Query once
-                                $profiles = Get-CimInstance -ClassName Win32_UserProfile
-
-                                foreach ($folder in $profileFolders) {
-                                $free = [math]::Round((Get-FreeGB $DriveLetter), 2)
-                                if ($free -ge $TargetFreeGB) {
-                                    Write-Log "Reached target free space ($free GB >= $TargetFreeGB GB). Stopping."
-                                    break
-                                }
-
-                                $p = $profiles | Where-Object {
-                                    $_.LocalPath -eq $folder.FullName -and -not $_.Special -and -not $_.Loaded
-                                }
-
-                                if ($null -eq $p) {
-                                    Write-Log "Skipping (no removable Win32_UserProfile match, or Special/Loaded): $($folder.FullName) (LastWrite: $($folder.LastWriteTime))" "WARN"
-                                    continue
-                                }
-
-                                $target = $p.LocalPath
-                                $action = "Remove user profile (SID: $($p.SID)); free-space target: $TargetFreeGB GB"
-
-                                # Master -WhatIf / -Confirm handling
-                                if ($PSCmdlet.ShouldProcess($target, $action)) {
-                                    Write-Log "Removing profile: $target (LastWrite: $($folder.LastWriteTime), SID: $($p.SID))"
-                                    Remove-CimInstance -InputObject $p -Confirm:$false
-
-                                    $after = [math]::Round((Get-FreeGB $DriveLetter), 2)
-                                    Write-Log "Removed. Free space now: $after GB"
-                                }
-                                else {
-                                    Write-Log "WHATIF/CONFIRM: Would remove profile: $target (LastWrite: $($folder.LastWriteTime), SID: $($p.SID))"
-                                }
-                                }
-
-                                $endFree = [math]::Round((Get-FreeGB $DriveLetter), 2)
-                                Write-Log "Done. Final free space: $endFree GB"
-                            }
-                            catch {
-                                Write-Log "Unhandled error: $($_.Exception.Message)" "ERROR"
-                                throw
-                            }
-                            finally {
-                                Stop-Transcript | Out-Null
-                                Write-Log "Finished. Review log at: $logPath and transcript at: $transcriptPath"
-                            }
-                            }
-                    </template>
-
-                    <pre>
-        <copy-button element-id="implInvokeProfileCleanup"></copy-button>
-        <code>Copy implementation (hidden)</code>
-      </pre>
-                </li>
-
-                <li>
-                    <strong>Start-CleanupImage</strong><br>
-                    Performs component store cleanup (DISM StartComponentCleanup) and volume optimization, with logging
-                    + transcript and
-                    <code class="inline-code">ShouldProcess</code> support.
-                    <span class="block-margin"><strong class="section-label">How to use:</strong></span>
-                    <ul>
-                        <li>Run elevated.</li>
-                        <li>Use <code class="inline-code">-WhatIf</code> first if calling it from a broader automation
-                            wrapper.</li>
-                        <li>Plan for runtime: DISM cleanup can take time on older systems.</li>
-                    </ul>
-
-                    <span class="block-margin"><strong class="section-label">Examples:</strong></span>
-                    <pre>
-        <copy-button element-id="exCleanupImage"></copy-button>
-        <code id="exCleanupImage">Start-CleanupImage -LogDir C:\WsMgmt\Logs -Confirm</code>
-      </pre>
-
-                    <template id="implStartCleanupImage">
-                        function Start-CleanupImage {
-                            [CmdletBinding(SupportsShouldProcess)]
-                            param(
-                            [string]$LogDir = 'C:\WsMgmt\Logs'
-                            )
-                            New-Item -ItemType Directory -Path $LogDir -Force | Out-Null
-                            $stamp = Get-Date -Format 'yyyyMMdd_HHmmss'
-                            $logPath = Join-Path $LogDir "ProfileCleanup_$($env:COMPUTERNAME)_$stamp.log"
-                            $transcriptPath = Join-Path $LogDir "ProfileCleanup_$($env:COMPUTERNAME)_$stamp.transcript.log"
-
-                            function Write-Log {
-                                param(
-                                    [Parameter(Mandatory)] [string] $Message,
-                                    [ValidateSet('INFO', 'WARN', 'ERROR')] [string] $Level = 'INFO'
-                                )
-
-                                $line = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') [$Level] $Message"
-                                $line | Write-Host
-                                Add-Content -Path $logPath -Value $line
-                            }
-                            Start-Transcript -Path $transcriptPath -Append | Out-Null
-
-                            try {
-                                Write-Log "Starting image cleanup process."
-                                Write-Log "Log file: $logPath"
-                                Write-Log "Transcript: $transcriptPath"
-
-                                if ($PSCmdlet.ShouldProcess("System Image", "Perform cleanup")) {
-                                    $Drive = (Get-CimInstance -ClassName Win32_OperatingSystem).SystemDrive.TrimEnd(':')
-                                    Write-Log "Optimizing volume $Drive"
-                                    Optimize-Volume -DriveLetter $Drive -ErrorAction SilentlyContinue
-                                    Write-Log "Volume optimization completed"
-                                    Write-Log "Running DISM component cleanup"
-                                    Dism.exe /Online /Cleanup-Image /StartComponentCleanup /Quiet | Out-Null
-                                    Write-Log "DISM component cleanup completed"
-                                }
-                                else {
-                                    Write-Log "WHATIF/CONFIRM: Would perform image cleanup"
-                                }
-                            }
-                            catch {
-                                Write-Log -Level 'ERROR' "An error occurred: $_"
-                            }
-                            finally {
-                                Write-Log "Image cleanup process completed."
-                                Stop-Transcript | Out-Null
-                            }
-                        }
-                    </template>
-
-                    <pre>
-        <copy-button element-id="implStartCleanupImage"></copy-button>
-        <code>Copy implementation (hidden)</code>
-      </pre>
-                </li>
+                <li>Recommended dry run first: run with <code class="inline-code">-WhatIf</code> to confirm what would be deleted.</li>
+                <li>Typical usage: specify <code class="inline-code">-DriveLetter</code> and optionally <code class="inline-code">-LogDir</code>.</li>
+                <li>Run elevated if targeting protected paths like <code class="inline-code">C:\Windows\Temp</code>.</li>
             </ul>
 
-            <p class="note">
-                <strong>Tip:</strong> The Copy button uses the Clipboard API (works best over HTTPS / secure context),
-                with a fallback
-                method for environments where clipboard access is restricted. [web:6]
-            </p>
+            <span class="block-margin"><strong class="section-label">Examples:</strong></span>
+            <pre><copy-button element-id="exRemoveTempWhatIf"></copy-button><code id="exRemoveTempWhatIf">Remove-TempFiles -DriveLetter C -LogDir C:\WsMgmt\Logs -WhatIf</code></pre>
+            <pre><copy-button element-id="exRemoveTempRun"></copy-button><code id="exRemoveTempRun">Remove-TempFiles -DriveLetter C -LogDir C:\WsMgmt\Logs -Confirm</code></pre>
+            <template id="implRemoveTempFiles">
+                function Remove-TempFiles {
+                    [CmdletBinding(SupportsShouldProcess)]
+                    param(
+                        [string[]]$ComputerName = @('localhost'),
+                        [System.Management.Automation.PSCredential]$Credential,
+                        [string]$DriveLetter = 'C',
+                        [switch]$Delete,
+                        [switch]$ConfirmDelete,
+                        [string]$LogDir = 'C:\WsMgmt\Logs'
+                    )
+                    New-Item -ItemType Directory -Path $LogDir -Force | Out-Null
+                    $stamp = Get-Date -Format 'yyyyMMdd_HHmmss'
+                    $logPath = Join-Path $LogDir "ProfileCleanup_$($env:COMPUTERNAME)_$stamp.log"
+                    $transcriptPath = Join-Path $LogDir "ProfileCleanup_$($env:COMPUTERNAME)_$stamp.transcript.log"
+
+                    function Write-Log {
+                        param(
+                            [Parameter(Mandatory)] [string] $Message,
+                            [ValidateSet('INFO', 'WARN', 'ERROR')] [string] $Level = 'INFO'
+                        )
+
+                        $line = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') [$Level] $Message"
+                        $line | Write-Host
+                        Add-Content -Path $logPath -Value $line
+                    }
+                    Start-Transcript -Path $transcriptPath -Append | Out-Null
+
+                    try {
+                        $tempPaths = @(
+                            "$DriveLetter`:\Temp",
+                            "$DriveLetter`:\Windows\Temp"
+                        )
+
+                        Write-Log "Starting temporary files removal process."
+                        Write-Log "Log file: $logPath"
+                        Write-Log "Transcript: $transcriptPath"
+
+                        foreach ($path in $tempPaths) {
+                            if (Test-Path $path) {
+                                Write-Log "Processing: $path"
+                                if ($PSCmdlet.ShouldProcess($path, "Remove all files and subdirectories")) {
+                                    Remove-Item -Path "$path\*" -Recurse -Force -ErrorAction Stop
+                                    Write-Log "Removed contents of: $path"
+                                }
+                                else {
+                                    Write-Log "WHATIF/CONFIRM: Would remove contents of: $path"
+                                }
+                            }
+                        }
+                    }
+                    catch {
+                        Write-Log -Level 'ERROR' "An error occurred: $_"
+                    }
+                    finally {
+                        Write-Log "Temporary files removal process completed."
+                        Stop-Transcript | Out-Null
+                    }
+                }
+            </template>
+
+            <br><br>
+
+            <!-- Invoke-ProfileCleanup (same pattern) -->
+            <div class="script-header"">
+                <strong>Invoke-ProfileCleanup</strong><br>
+                <copy-button element-id="implInvokeProfileCleanup" tooltip="Copy Invoke-ProfileCleanup implementation"></copy-button>
+            </div>
+            <div style="padding-bottom: .5rem;">
+                Iterates removable user profiles (not Special, not Loaded) and removes oldest-first until the drive meets a target
+                free-space threshold, logging actions<br> and using <code class="inline-code">ShouldProcess</code> for safety.
+            </div>
+            <span class="block-margin"><strong class="section-label">How to use:</strong></span>
+            <ul>
+                <li>Start with <code class="inline-code">-WhatIf</code> to see which profiles would be removed.</li>
+                <li>Adjust <code class="inline-code">-TargetFreeGB</code> based on your environment.</li>
+                <li>Do not run while users are actively logging in/out (profiles may become Loaded mid-run).</li>
+            </ul>
+
+            <span class="block-margin"><strong class="section-label">Examples:</strong></span>
+            <pre><copy-button element-id="exProfileCleanupWhatIf"></copy-button><code id="exProfileCleanupWhatIf">Invoke-ProfileCleanup -TargetFreeGB 75 -DriveLetter C -LogDir C:\WsMgmt\Logs -WhatIf</code></pre>
+            <pre><copy-button element-id="exProfileCleanupRun"></copy-button><code id="exProfileCleanupRun">Invoke-ProfileCleanup -TargetFreeGB 75 -DriveLetter C -LogDir C:\WsMgmt\Logs -Confirm</code></pre>
+
+            <template id="implInvokeProfileCleanup">
+                function Invoke-ProfileCleanup {
+                    [CmdletBinding(SupportsShouldProcess)]
+                    param(
+                        [int]    $TargetFreeGB = 75,
+                        [string] $DriveLetter  = 'C',
+                        [string] $LogDir       = 'C:\WsMgmt\Logs'
+                    )
+
+                    function Get-FreeGB([string]$Letter) {
+                        (Get-PSDrive -Name $Letter).Free / 1GB
+                    }
+
+                    New-Item -ItemType Directory -Path $LogDir -Force | Out-Null
+                    $stamp          = Get-Date -Format 'yyyyMMdd_HHmmss'
+                    $logPath        = Join-Path $LogDir "ProfileCleanup_$($env:COMPUTERNAME)_$stamp.log"
+                    $transcriptPath = Join-Path $LogDir "ProfileCleanup_$($env:COMPUTERNAME)_$stamp.transcript.log"
+
+                    function Write-Log {
+                        param(
+                        [Parameter(Mandatory)] [string] $Message,
+                        [ValidateSet('INFO','WARN','ERROR')] [string] $Level = 'INFO'
+                        )
+
+                        $line = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') [$Level] $Message"
+                        $line | Write-Host
+                        Add-Content -Path $logPath -Value $line
+                    }
+
+                    Write-Host "Log file: $logPath"
+                    Write-Host "Transcript: $transcriptPath"
+                    Start-Transcript -Path $transcriptPath -Append | Out-Null
+
+                    try {
+                        Write-Log "Starting profile cleanup. Target free space: $TargetFreeGB GB on drive $DriveLetter`:."
+                        Write-Log "Log file: $logPath"
+                        Write-Log "Transcript: $transcriptPath"
+                        Write-Log "WhatIfPreference (inside function scope): $WhatIfPreference"
+
+                        $startFree = [math]::Round((Get-FreeGB $DriveLetter), 2)
+                        Write-Log "Initial free space: $startFree GB"
+
+                        $profileRoot = "$DriveLetter`:\Users"
+                        $profileFolders =
+                        Get-ChildItem -Path $profileRoot -Directory -Force |
+                        Sort-Object LastWriteTime
+
+                        $profiles = Get-CimInstance -ClassName Win32_UserProfile
+
+                        foreach ($folder in $profileFolders) {
+                        $free = [math]::Round((Get-FreeGB $DriveLetter), 2)
+                        if ($free -ge $TargetFreeGB) {
+                            Write-Log "Reached target free space ($free GB >= $TargetFreeGB GB). Stopping."
+                            break
+                        }
+
+                        $p = $profiles | Where-Object {
+                            $_.LocalPath -eq $folder.FullName -and -not $_.Special -and -not $_.Loaded
+                        }
+
+                        if ($null -eq $p) {
+                            Write-Log "Skipping (no removable Win32_UserProfile match, or Special/Loaded): $($folder.FullName) (LastWrite: $($folder.LastWriteTime))" "WARN"
+                            continue
+                        }
+
+                        $target = $p.LocalPath
+                        $action = "Remove user profile (SID: $($p.SID)); free-space target: $TargetFreeGB GB"
+
+                        if ($PSCmdlet.ShouldProcess($target, $action)) {
+                            Write-Log "Removing profile: $target (LastWrite: $($folder.LastWriteTime), SID: $($p.SID))"
+                            Remove-CimInstance -InputObject $p -Confirm:$false
+
+                            $after = [math]::Round((Get-FreeGB $DriveLetter), 2)
+                            Write-Log "Removed. Free space now: $after GB"
+                        }
+                        else {
+                            Write-Log "WHATIF/CONFIRM: Would remove profile: $target (LastWrite: $($folder.LastWriteTime), SID: $($p.SID))"
+                        }
+                        }
+
+                        $endFree = [math]::Round((Get-FreeGB $DriveLetter), 2)
+                        Write-Log "Done. Final free space: $endFree GB"
+                    }
+                    catch {
+                        Write-Log "Unhandled error: $($_.Exception.Message)" "ERROR"
+                        throw
+                    }
+                    finally {
+                        Stop-Transcript | Out-Null
+                        Write-Log "Finished. Review log at: $logPath and transcript at: $transcriptPath"
+                    }
+                }
+            </template>
+
+            <br><br>
+
+            <!-- Start-CleanupImage (same pattern) -->
+            <div class="script-header">
+                <strong>Start-CleanupImage</strong><br>
+                <copy-button element-id="implStartCleanupImage" tooltip="Copy Start-CleanupImage implementation"></copy-button>
+            </div>
+            <div style="padding-bottom: .5rem;">
+                Performs component store cleanup (DISM StartComponentCleanup) and volume optimization, with logging + transcript and
+                <code class="inline-code">ShouldProcess</code> support.
+            </div>
+            <span class="block-margin"><strong class="section-label">How to use:</strong></span>
+            <ul>
+                <li>Run elevated.</li>
+                <li>Use <code class="inline-code">-WhatIf</code> first if calling it from a broader automation wrapper.</li>
+                <li>Plan for runtime: DISM cleanup can take time on older systems.</li>
+            </ul>
+
+            <span class="block-margin"><strong class="section-label">Examples:</strong></span>
+            <pre><copy-button element-id="exCleanupImage"></copy-button><code id="exCleanupImage">Start-CleanupImage -LogDir C:\WsMgmt\Logs -Confirm</code></pre>
+
+            <template id="implStartCleanupImage">
+                function Start-CleanupImage {
+                    [CmdletBinding(SupportsShouldProcess)]
+                    param(
+                    [string]$LogDir = 'C:\WsMgmt\Logs'
+                    )
+                    New-Item -ItemType Directory -Path $LogDir -Force | Out-Null
+                    $stamp = Get-Date -Format 'yyyyMMdd_HHmmss'
+                    $logPath = Join-Path $LogDir "ProfileCleanup_$($env:COMPUTERNAME)_$stamp.log"
+                    $transcriptPath = Join-Path $LogDir "ProfileCleanup_$($env:COMPUTERNAME)_$stamp.transcript.log"
+
+                    function Write-Log {
+                        param(
+                            [Parameter(Mandatory)] [string] $Message,
+                            [ValidateSet('INFO', 'WARN', 'ERROR')] [string] $Level = 'INFO'
+                        )
+
+                        $line = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') [$Level] $Message"
+                        $line | Write-Host
+                        Add-Content -Path $logPath -Value $line
+                    }
+                    Start-Transcript -Path $transcriptPath -Append | Out-Null
+
+                    try {
+                        Write-Log "Starting image cleanup process."
+                        Write-Log "Log file: $logPath"
+                        Write-Log "Transcript: $transcriptPath"
+
+                        if ($PSCmdlet.ShouldProcess("System Image", "Perform cleanup")) {
+                            $Drive = (Get-CimInstance -ClassName Win32_OperatingSystem).SystemDrive.TrimEnd(':')
+                            Write-Log "Optimizing volume $Drive"
+                            Optimize-Volume -DriveLetter $Drive -ErrorAction SilentlyContinue
+                            Write-Log "Volume optimization completed"
+                            Write-Log "Running DISM component cleanup"
+                            Dism.exe /Online /Cleanup-Image /StartComponentCleanup /Quiet | Out-Null
+                            Write-Log "DISM component cleanup completed"
+                        }
+                        else {
+                            Write-Log "WHATIF/CONFIRM: Would perform image cleanup"
+                        }
+                    }
+                    catch {
+                        Write-Log -Level 'ERROR' "An error occurred: $_"
+                    }
+                    finally {
+                        Write-Log "Image cleanup process completed."
+                        Stop-Transcript | Out-Null
+                    }
+                }
+            </template>
         </section>
+
 
     </main>
     <script>
@@ -872,7 +840,7 @@ Get-PSDrive -PSProvider FileSystem |
 
             // Observe 'element-id' attribute
             static get observedAttributes() {
-                return ["element-id"];
+                return ["element-id", "tooltip"];
             }
 
             // Getter for 'element-id' property
@@ -887,6 +855,20 @@ Get-PSDrive -PSProvider FileSystem |
                     this.setAttribute("element-id", value); // Reflect to HTML attribute
                 } else {
                     this.removeAttribute("element-id");
+                }
+            }
+
+            // Getter for 'tooltip' property
+            get tooltip() {
+                return this.getAttribute("tooltip") || "Copy to clipboard";
+            }
+
+            // Setter for 'tooltip' property
+            set tooltip(value) {
+                if (value) {
+                    this.setAttribute("tooltip", value); // Reflect to HTML attribute
+                } else {
+                    this.removeAttribute("tooltip");
                 }
             }
 
@@ -929,6 +911,10 @@ Get-PSDrive -PSProvider FileSystem |
 
                 const button = shadow.querySelector("button");
                 button.addEventListener("click", this.copyTextFromElement.bind(this));
+
+                if (this.getAttribute("tooltip")) {
+                    button.setAttribute("title", this.getAttribute("tooltip"));
+                }
             }
 
             /**
@@ -937,6 +923,15 @@ Get-PSDrive -PSProvider FileSystem |
             attributeChangedCallback(name, oldValue, newValue) {
                 if (name === "element-id") {
                     this._elementId = newValue;
+                }
+
+                if (name === "tooltip") {
+                    // optional: store it; not strictly required if you always read getAttribute()
+                    this._tooltip = newValue;
+
+                    // if already rendered, update the inner <button> title live
+                    const btn = this.shadowRoot?.querySelector("button");
+                    if (btn) btn.setAttribute("title", newValue || "");
                 }
             }
 
