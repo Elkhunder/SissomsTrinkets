@@ -1,0 +1,10 @@
+{
+    "name": "PowerShell Dev",
+    "image": "mcr.microsoft.com",
+    "features": {
+        "ghcr.io/devcontainers/features/powershell:1": {
+            "version": "latest"
+        }
+    },
+    "postCreateCommand": "pwsh -c 'Install-Module -Name Pester -Force'"
+}
